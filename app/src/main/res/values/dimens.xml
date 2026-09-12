@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="corner_card">18dp</dimen>
+    <dimen name="corner_card_header">20dp</dimen>
+    <dimen name="elevation_header_resting">0dp</dimen>
+    <dimen name="elevation_header_scrolled">6dp</dimen>
+</resources>

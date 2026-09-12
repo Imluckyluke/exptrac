@@ -1,0 +1,11 @@
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <alpha
+        android:fromAlpha="0"
+        android:toAlpha="1"
+        android:duration="260" />
+    <translate
+        android:fromYDelta="8%"
+        android:toYDelta="0"
+        android:duration="260"
+        android:interpolator="@android:interpolator/decelerate_quint" />
+</set>

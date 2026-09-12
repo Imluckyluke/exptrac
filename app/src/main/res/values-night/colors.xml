@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple">#D0BCFF</color>
+    <color name="purple_dark">#4F378B</color>
+    <color name="teal">#8FD4CB</color>
+    <color name="background">#000000</color>
+    <color name="surface">#161616</color>
+    <color name="surface_light">#232323</color>
+    <color name="divider">#333333</color>
+    <color name="white">#FFFFFF</color>
+    <color name="text_dark">#FFFFFF</color>
+    <color name="text_primary">#E6E1E5</color>
+    <color name="text_secondary">#B3B3B3</color>
+    <color name="red">#F2B8B5</color>
+    <color name="swipe_delete_bg">#601410</color>
+    <color name="today_badge_bg">#332D41</color>
+    <color name="today_badge_text">#D0BCFF</color>
+    <color name="chart_1">#D0BCFF</color>
+    <color name="chart_2">#8FD4CB</color>
+    <color name="chart_3">#F2B8B5</color>
+    <color name="chart_4">#E6C08C</color>
+    <color name="chart_5">#A0D89B</color>
+    <color name="chart_6">#A9C9F5</color>
+</resources>
