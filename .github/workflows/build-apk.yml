@@ -23,7 +23,7 @@ jobs:
           gradle-version: '8.9'
 
       - name: Build debug APK
-        working-directory: ./ExpenseTracker
+        working-directory: .
         run: gradle assembleDebug --stacktrace
 
       - name: Upload APK artifact
