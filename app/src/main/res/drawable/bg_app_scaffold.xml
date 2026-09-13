@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A quiet, single-hue ambient glow over the dynamic surface color, soft enough to
+     read as depth behind the frosted "glass" cards, not as a decoration on its own. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="?attr/colorSurface" />
+
+    <item
+        android:width="360dp"
+        android:height="360dp"
+        android:gravity="top|end"
+        android:top="-160dp"
+        android:end="-130dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="180dp"
+                android:centerColor="@color/blob_primary"
+                android:endColor="@android:color/transparent" />
+        </shape>
+    </item>
+
+    <item
+        android:width="320dp"
+        android:height="320dp"
+        android:gravity="bottom|start"
+        android:bottom="-150dp"
+        android:start="-120dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="160dp"
+                android:centerColor="@color/blob_secondary"
+                android:endColor="@android:color/transparent" />
+        </shape>
+    </item>
+</layer-list>

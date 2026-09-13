@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tablets / large screens: breathe more instead of stretching edge-to-edge -->
+    <dimen name="screen_h_padding">64dp</dimen>
+    <dimen name="corner_card">24dp</dimen>
+    <dimen name="corner_card_header">30dp</dimen>
+    <dimen name="category_dot_size">12dp</dimen>
+</resources>

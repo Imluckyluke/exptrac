@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layout_marginTop="4dp">
+
+    <View
+        android:id="@+id/catDot"
+        android:layout_width="@dimen/category_dot_size"
+        android:layout_height="@dimen/category_dot_size"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/dot_category" />
+
+    <TextView
+        android:id="@+id/tvCategoryLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurface"
+        android:textDirection="locale"
+        tools:ignore="HardcodedText"
+        tools:text="Groceries" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDeleteCategory"
+        style="@style/Widget.Material3.Button.IconButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:icon="@drawable/ic_delete"
+        app:iconTint="?attr/colorError"
+        android:contentDescription="@string/cd_delete_category" />
+
+</LinearLayout>
