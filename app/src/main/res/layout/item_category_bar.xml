@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+
+    <View
+        android:id="@+id/catDot"
+        android:layout_width="@dimen/category_dot_size"
+        android:layout_height="@dimen/category_dot_size"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/dot_category" />
+
+    <TextView
+        android:id="@+id/tvCatLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurface"
+        tools:ignore="HardcodedText"
+        tools:text="Food" />
+
+    <TextView
+        android:id="@+id/tvCatAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textStyle="bold"
+        android:textColor="?attr/colorOnSurface"
+        tools:ignore="HardcodedText"
+        tools:text="120,000" />
+
+</LinearLayout>
