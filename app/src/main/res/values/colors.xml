@@ -29,4 +29,8 @@
     <color name="chart_9">#5B5FEF</color>
     <color name="chart_10">#E8395C</color>
     <color name="splash_background">#0B0E14</color>
+    <color name="hero_start">#101B2D</color>
+    <color name="hero_end">#123A34</color>
+    <color name="hero_on">#F2F6FA</color>
+    <color name="hero_muted">#9FC7BC</color>
 </resources>

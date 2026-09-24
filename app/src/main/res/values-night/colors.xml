@@ -27,4 +27,8 @@
     <color name="chart_8">#7ED5C7</color>
     <color name="chart_9">#B4B6FF</color>
     <color name="chart_10">#F18CA0</color>
+    <color name="hero_start">#0B111C</color>
+    <color name="hero_end">#0D2C26</color>
+    <color name="hero_on">#F2F6FA</color>
+    <color name="hero_muted">#7FA79B</color>
 </resources>

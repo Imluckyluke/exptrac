@@ -65,11 +65,11 @@
         android:id="@+id/headerCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="?attr/colorSurfaceVariant"
+        app:cardBackgroundColor="@android:color/transparent"
         app:cardCornerRadius="@dimen/corner_card_header"
         app:cardElevation="@dimen/elevation_header_resting"
-        app:strokeWidth="1dp"
-        app:strokeColor="?attr/colorOutline">
+        app:strokeWidth="0dp"
+        android:background="@drawable/bg_hero">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -113,7 +113,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center"
                             android:textAppearance="?attr/textAppearanceTitleLarge"
-                            android:textColor="?attr/colorOnSurface"
+                            android:textColor="@color/hero_on"
                             android:textStyle="bold"
                             android:text="@string/date_placeholder" />
 
@@ -142,9 +142,9 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:gravity="center"
-                        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                        android:textAppearance="?attr/textAppearanceHeadlineMedium"
                         android:textStyle="bold"
-                        android:textColor="?attr/colorPrimary"
+                        android:textColor="@color/mint"
                         tools:ignore="HardcodedText"
                         tools:text="Total today: 0 Toman" />
                 </LinearLayout>
