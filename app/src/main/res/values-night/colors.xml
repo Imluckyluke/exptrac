@@ -1,28 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple">#B4B6FF</color>
-    <color name="purple_dark">#3730A3</color>
+    <color name="purple">#00C48C</color>
+    <color name="purple_dark">#007A5B</color>
     <color name="teal">#FFB08C</color>
-    <color name="background">#0E0D18</color>
-    <color name="surface">#18172A</color>
-    <color name="surface_light">#242238</color>
-    <color name="divider">#332F52</color>
+    <color name="mint">#00C48C</color>
+    <color name="ink">#0B0E14</color>
+    <color name="background">#0B0E14</color>
+    <color name="surface">#121722</color>
+    <color name="surface_light">#1B2230</color>
+    <color name="divider">#26303F</color>
     <color name="white">#FFFFFF</color>
     <color name="text_dark">#FFFFFF</color>
-    <color name="text_primary">#ECEBFC</color>
-    <color name="text_secondary">#A9A6C9</color>
+    <color name="text_primary">#F2F6FA</color>
+    <color name="text_secondary">#93A1B5</color>
     <color name="red">#F0A199</color>
     <color name="swipe_delete_bg">#4A2320</color>
-    <color name="today_badge_bg">#2E2A54</color>
-    <color name="today_badge_text">#C2C3FF</color>
-    <color name="chart_1">#B4B6FF</color>
-    <color name="chart_2">#C598ED</color>
-    <color name="chart_3">#ED8CC7</color>
-    <color name="chart_4">#F18CA0</color>
+    <color name="today_badge_bg">#0E3B2E</color>
+    <color name="today_badge_text">#5EE8B5</color>
+    <color name="chart_1">#00C48C</color>
+    <color name="chart_2">#5EB2F0</color>
+    <color name="chart_3">#A78BFA</color>
+    <color name="chart_4">#ED8CC7</color>
     <color name="chart_5">#F7B685</color>
     <color name="chart_6">#E6D684</color>
     <color name="chart_7">#BEDF8C</color>
-    <color name="chart_8">#86D9AC</color>
-    <color name="chart_9">#7ED5C7</color>
-    <color name="chart_10">#85C5E7</color>
+    <color name="chart_8">#7ED5C7</color>
+    <color name="chart_9">#B4B6FF</color>
+    <color name="chart_10">#F18CA0</color>
 </resources>
