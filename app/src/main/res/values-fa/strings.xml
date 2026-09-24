@@ -101,6 +101,9 @@
     <string name="msg_backup_export_failed">ذخیره‌ی پشتیبان ممکن نشد</string>
     <string name="msg_backup_imported">%1$d هزینه، %2$d دسته‌بندی و %3$d بانک بازیابی شد</string>
     <string name="msg_backup_import_failed">این فایل پشتیبان خوانده نشد</string>
+    <string name="msg_backup_import_in_progress">بازیابی در حال انجام است</string>
+    <string name="msg_backup_already_present">%1$d هزینه از قبل موجود بود</string>
+    <string name="msg_backup_imported_with_skips">%1$d هزینه، %2$d دسته‌بندی و %3$d بانک بازیابی شد؛ %4$d مورد نامعتبر رد شد</string>
 
     <string name="notif_channel_name">تراکنش‌های جدید</string>
     <string name="notif_new_transaction_title">تراکنش جدید</string>

@@ -153,7 +153,11 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
                 ?: cursor.getString(cursor.getColumnIndexOrThrow("date")),
             title = cursor.getString(cursor.getColumnIndexOrThrow("title")),
             amount = cursor.getDouble(cursor.getColumnIndexOrThrow("amount")),
-            category = if (Category.isValid(category)) category else Category.DEFAULT
+            category = if (Category.isBuiltInId(category) || category.startsWith("custom_")) {
+                category
+            } else {
+                Category.DEFAULT
+            }
         )
     }
 

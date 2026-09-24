@@ -89,6 +89,7 @@ class MainActivity : AppCompatActivity() {
 
     // Prevents a second review dialog chain from starting while one is already showing.
     private var isReviewFlowActive = false
+    private var isImportingBackup = false
     private var isLanguageSwitching = false
     private var languageTransitionDirection = 1
 
@@ -113,29 +114,59 @@ class MainActivity : AppCompatActivity() {
     private val importBackupLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri == null) return@registerForActivityResult
-            try {
-                val text = contentResolver.openInputStream(uri)?.bufferedReader()?.readText().orEmpty()
-                val result = BackupHelper.importJson(this, dbHelper, text)
-                Snackbar.make(
-                    binding.root,
-                    getString(
-                        R.string.msg_backup_imported,
-                        result.expensesAdded,
-                        result.categoriesAdded,
-                        result.banksAdded
-                    ),
-                    Snackbar.LENGTH_LONG
-                ).show()
-                populateCategoryChips(
-                    binding.chipGroupCategory,
-                    selectedCategory(binding.chipGroupCategory),
-                    animate = true
-                )
-                refreshList()
-                BalanceWidgetProvider.updateAll(this)
-            } catch (e: Exception) {
-                Snackbar.make(binding.root, R.string.msg_backup_import_failed, Snackbar.LENGTH_SHORT).show()
+            if (isImportingBackup) {
+                Snackbar.make(binding.root, R.string.msg_backup_import_in_progress, Snackbar.LENGTH_SHORT).show()
+                return@registerForActivityResult
             }
+            isImportingBackup = true
+            Thread {
+                try {
+                    val text = contentResolver.openInputStream(uri)?.use { stream ->
+                        stream.bufferedReader(Charsets.UTF_8).readText()
+                    } ?: throw IllegalStateException("Backup stream is unavailable")
+                    val result = BackupHelper.importJson(this, dbHelper, text)
+                    runOnUiThread {
+                        if (!isFinishing && !isDestroyed) {
+                            isImportingBackup = false
+                            val message = when {
+                                result.skipped > 0 -> getString(
+                                    R.string.msg_backup_imported_with_skips,
+                                    result.expensesAdded,
+                                    result.categoriesAdded,
+                                    result.banksAdded,
+                                    result.skipped
+                                )
+                                result.expensesAdded == 0 && result.expensesAlreadyPresent > 0 -> getString(
+                                    R.string.msg_backup_already_present,
+                                    result.expensesAlreadyPresent
+                                )
+                                else -> getString(
+                                    R.string.msg_backup_imported,
+                                    result.expensesAdded,
+                                    result.categoriesAdded,
+                                    result.banksAdded
+                                )
+                            }
+                            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+                            result.latestDate?.let(::showImportedDate)
+                            populateCategoryChips(
+                                binding.chipGroupCategory,
+                                selectedCategory(binding.chipGroupCategory),
+                                animate = true
+                            )
+                            refreshList()
+                            BalanceWidgetProvider.updateAll(this)
+                        }
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        if (!isFinishing && !isDestroyed) {
+                            isImportingBackup = false
+                            Snackbar.make(binding.root, R.string.msg_backup_import_failed, Snackbar.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }.start()
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -727,6 +758,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
         dialog.show()
+    }
+
+    private fun showImportedDate(dateKey: String) {
+        val parts = dateKey.split('-')
+        if (parts.size != 3) return
+        val year = parts[0].toIntOrNull() ?: return
+        val month = parts[1].toIntOrNull() ?: return
+        val day = parts[2].toIntOrNull() ?: return
+        if (month !in 1..12 || day !in 1..PersianDate.daysInJalaliMonth(year, month)) return
+        jy = year
+        jm = month
+        jd = day
+        updateDateLabel(animate = true)
     }
 
     private fun refreshList(onCommitted: (() -> Unit)? = null) {

@@ -81,6 +81,8 @@ object Category {
 
     fun isBuiltIn(id: String): Boolean = !id.startsWith(CUSTOM_PREFIX)
 
+    fun isBuiltInId(id: String): Boolean = BUILT_IN_DEFS.any { it.id == id }
+
     /** The raw database row id for a custom category id (e.g. "custom_12" -> 12L), or null if
      * [id] isn't a custom category. */
     fun customRowId(id: String): Long? =

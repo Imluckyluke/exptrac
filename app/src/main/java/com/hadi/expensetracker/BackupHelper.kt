@@ -10,7 +10,21 @@ object BackupHelper {
 
     private const val VERSION = 2
 
-    data class ImportResult(val expensesAdded: Int, val categoriesAdded: Int, val banksAdded: Int)
+    data class ImportResult(
+        val expensesAdded: Int,
+        val categoriesAdded: Int,
+        val banksAdded: Int,
+        val expensesAlreadyPresent: Int = 0,
+        val skipped: Int = 0,
+        val latestDate: String? = null
+    )
+
+    private data class ExpenseKey(
+        val date: String,
+        val title: String,
+        val amount: Double,
+        val category: String
+    )
 
     fun exportJson(dbHelper: DbHelper): String {
         val root = JSONObject()
@@ -58,76 +72,127 @@ object BackupHelper {
      * it had on the device the backup came from) — matched by label if it already exists,
      * so re-importing the same backup twice doesn't create duplicate categories. */
     fun importJson(context: Context, dbHelper: DbHelper, json: String): ImportResult {
-        val root = JSONObject(json)
+        val root = JSONObject(json.removePrefix("\uFEFF").trim())
+        val version = root.optInt("version", 0)
+        require(version == 1 || version == 2)
+        val expensesArray = requireNotNull(root.optJSONArray("expenses"))
 
+        val database = dbHelper.writableDatabase
         var categoriesAdded = 0
-        val categoryIdRemap = HashMap<Long, String>()
-        root.optJSONArray("customCategories")?.let { array ->
-            val existingByLabel = dbHelper.getCustomCategories().associateBy { it.label }
-            for (i in 0 until array.length()) {
-                val obj = array.getJSONObject(i)
-                val label = obj.optString("label")
-                if (label.isBlank()) continue
-                val oldId = obj.optLong("id", -1L)
-                val colorIndex = obj.optInt("colorIndex", 0)
-
-                val existing = existingByLabel[label]
-                val newRawId = if (existing != null) {
-                    existing.id
-                } else {
-                    val inserted = dbHelper.addCustomCategory(label, colorIndex)
-                    categoriesAdded++
-                    inserted
-                }
-                if (oldId >= 0) categoryIdRemap[oldId] = "custom_$newRawId"
-            }
-        }
-        if (categoriesAdded > 0) {
-            Category.refresh(context, dbHelper)
-        }
-
         var expensesAdded = 0
-        root.optJSONArray("expenses")?.let { array ->
-            for (i in 0 until array.length()) {
-                val obj = array.getJSONObject(i)
-                val date = PersianDate.normalizeDateKey(obj.optString("date")) ?: continue
-                val title = obj.optString("title")
-                val amount = obj.optDouble("amount", Double.NaN)
-                if (amount.isNaN() || title.isBlank()) continue
+        var expensesAlreadyPresent = 0
+        var banksAdded = 0
+        var skipped = 0
+        var latestDateValue: String? = null
 
-                val rawCategory = obj.optString("category", Category.DEFAULT)
+        database.beginTransaction()
+        try {
+            val categoryIdRemap = HashMap<Long, String>()
+            val existingCategories = dbHelper.getCustomCategories()
+            val existingIdsByLabel = existingCategories
+                .associate { it.label.trim() to it.id }
+                .toMutableMap()
+            val existingCustomIds = existingCategories.associateBy { it.id }
+
+            root.optJSONArray("customCategories")?.let { array ->
+                for (i in 0 until array.length()) {
+                    val obj = array.optJSONObject(i) ?: continue
+                    val label = obj.optString("label").trim()
+                    if (label.isBlank()) continue
+                    val oldId = obj.optLong("id", -1L)
+                    val colorIndex = obj.optInt("colorIndex", 0)
+                        .coerceIn(0, Category.COLOR_PALETTE.lastIndex)
+
+                    val newRawId = existingIdsByLabel[label] ?: run {
+                        val inserted = dbHelper.addCustomCategory(label, colorIndex)
+                        check(inserted >= 0)
+                        categoriesAdded++
+                        existingIdsByLabel[label] = inserted
+                        inserted
+                    }
+                    if (oldId >= 0) categoryIdRemap[oldId] = "custom_$newRawId"
+                }
+            }
+
+            val existingExpenseCounts = HashMap<ExpenseKey, Int>()
+            for (expense in dbHelper.getAllExpenses()) {
+                val key = ExpenseKey(expense.date, expense.title, expense.amount, expense.category)
+                existingExpenseCounts[key] = (existingExpenseCounts[key] ?: 0) + 1
+            }
+
+            for (i in 0 until expensesArray.length()) {
+                val obj = expensesArray.optJSONObject(i)
+                if (obj == null) {
+                    skipped++
+                    continue
+                }
+
+                val date = PersianDate.normalizeDateKey(obj.optString("date"))
+                val title = obj.optString("title").trim()
+                val amount = obj.optDouble("amount", Double.NaN)
+                if (date == null || title.isBlank() || amount.isNaN() || amount.isInfinite() || amount <= 0.0) {
+                    skipped++
+                    continue
+                }
+
+                val rawCategory = obj.optString("category", Category.DEFAULT).trim()
                 val category = when {
                     rawCategory.startsWith("custom_") -> {
                         val oldRawId = rawCategory.removePrefix("custom_").toLongOrNull()
-                        oldRawId?.let { categoryIdRemap[it] } ?: Category.DEFAULT
+                        oldRawId?.let { categoryIdRemap[it] ?: existingCustomIds[it]?.let { id -> "custom_$id" } }
                     }
-                    Category.isValid(rawCategory) -> rawCategory
+                    Category.isBuiltInId(rawCategory) -> rawCategory
                     else -> Category.DEFAULT
                 }
-                if (!dbHelper.hasExpense(date, title, amount)) {
-                    dbHelper.insertExpense(date, title, amount, category)
+                if (category == null) {
+                    skipped++
+                    continue
+                }
+
+                val currentLatest = latestDateValue
+                if (currentLatest == null || date > currentLatest) latestDateValue = date
+                val key = ExpenseKey(date, title, amount, category)
+                val existingCount = existingExpenseCounts[key] ?: 0
+                if (existingCount > 0) {
+                    existingExpenseCounts[key] = existingCount - 1
+                    expensesAlreadyPresent++
+                } else {
+                    val inserted = dbHelper.insertExpense(date, title, amount, category)
+                    check(inserted >= 0)
                     expensesAdded++
                 }
             }
-        }
 
-        var banksAdded = 0
-        root.optJSONArray("customBanks")?.let { array ->
-            for (i in 0 until array.length()) {
-                val obj = array.getJSONObject(i)
-                val label = obj.optString("label")
-                val sender = obj.optString("sender")
-                val sample = obj.optString("sample")
-                if (label.isBlank() || sender.isBlank()) continue
-                if (dbHelper.hasCustomBank(sender)) continue
-                val id = dbHelper.addCustomBank(label, sender, sample)
-                if (!obj.optBoolean("enabled", true)) {
-                    dbHelper.setCustomBankEnabled(id, false)
+            root.optJSONArray("customBanks")?.let { array ->
+                for (i in 0 until array.length()) {
+                    val obj = array.optJSONObject(i) ?: continue
+                    val label = obj.optString("label").trim()
+                    val sender = obj.optString("sender").trim()
+                    val sample = obj.optString("sample")
+                    if (label.isBlank() || sender.isBlank()) continue
+                    if (dbHelper.hasCustomBank(sender)) continue
+                    val id = dbHelper.addCustomBank(label, sender, sample)
+                    check(id >= 0)
+                    if (!obj.optBoolean("enabled", true)) {
+                        dbHelper.setCustomBankEnabled(id, false)
+                    }
+                    banksAdded++
                 }
-                banksAdded++
             }
+
+            database.setTransactionSuccessful()
+        } finally {
+            database.endTransaction()
         }
 
-        return ImportResult(expensesAdded, categoriesAdded, banksAdded)
+        Category.refresh(context, dbHelper)
+        return ImportResult(
+            expensesAdded = expensesAdded,
+            categoriesAdded = categoriesAdded,
+            banksAdded = banksAdded,
+            expensesAlreadyPresent = expensesAlreadyPresent,
+            skipped = skipped,
+            latestDate = latestDateValue
+        )
     }
 }

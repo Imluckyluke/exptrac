@@ -101,6 +101,9 @@
     <string name="msg_backup_export_failed">Could not save backup</string>
     <string name="msg_backup_imported">Imported %1$d expense(s), %2$d categories, and %3$d bank(s)</string>
     <string name="msg_backup_import_failed">Could not read that backup file</string>
+    <string name="msg_backup_import_in_progress">Restore is already in progress</string>
+    <string name="msg_backup_already_present">%1$d expense(s) were already present</string>
+    <string name="msg_backup_imported_with_skips">Imported %1$d expense(s), %2$d categories, and %3$d bank(s); skipped %4$d invalid item(s)</string>
 
     <string name="notif_channel_name">New transactions</string>
     <string name="notif_new_transaction_title">New transaction</string>
