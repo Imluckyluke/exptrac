@@ -4,7 +4,7 @@
     <string name="btn_previous">‹ قبلی</string>
     <string name="btn_next">بعدی ›</string>
     <string name="date_placeholder">امروز</string>
-    <string name="total_label">جمع امروز: %1$s تومان</string>
+    <string name="total_label">جمع امروز:&#160;%1$s&#160;تومان</string>
     <string name="hint_description">توضیحات (مثلاً نان)</string>
     <string name="hint_amount">مبلغ (تومان)</string>
     <string name="btn_add">افزودن هزینه</string>
@@ -46,6 +46,7 @@
     <string name="hint_bank_sample">یک نمونه پیامک تراکنش از این بانک اینجا بچسبانید</string>
     <string name="preview_bank_sample_title">چیزی که از این نمونه استخراج می‌شود:</string>
     <string name="preview_bank_sample_empty">برای پیش‌نمایش، یک نمونه بالا بچسبانید</string>
+    <string name="preview_bank_amount_format">%1$s — %2$s تومان</string>
     <string name="msg_bank_fields_required">نام، شماره فرستنده و نمونه پیامک را وارد کنید</string>
     <string name="msg_bank_added">بانک اضافه شد</string>
     <string name="msg_bank_removed">بانک حذف شد</string>
@@ -64,7 +65,7 @@
     <string name="widget_untitled_prompt">این واریز یا برداشت برای چه بود؟</string>
     <string name="widget_no_data">هنوز تراکنشی نیست</string>
     <string name="widget_balance_unknown">هنوز داده‌ای نیست</string>
-    <string name="widget_amount_format">%1$s تومان</string>
+    <string name="widget_amount_format">%1$s&#160;تومان</string>
 
     <string name="cd_stats">گزارش ماهانه</string>
     <string name="cd_language">تغییر زبان</string>
@@ -81,14 +82,16 @@
     <string name="cat_entertainment">سرگرمی</string>
     <string name="cat_other">سایر</string>
     <string name="stats_title">گزارش ماهانه</string>
-    <string name="stats_total_label">جمع این ماه: %1$s تومان</string>
+    <string name="stats_total_label">جمع این ماه:&#160;%1$s&#160;تومان</string>
     <string name="stats_by_category_title">بر اساس دسته‌بندی</string>
     <string name="stats_by_day_title">بر اساس روز</string>
     <string name="stats_no_data">این ماه هنوز هزینه‌ای ثبت نشده</string>
     <string name="stats_day_format">روز %1$d</string>
     <string name="stats_mode_half">نمای نیم‌ماه</string>
     <string name="stats_mode_month">نمای ماهانه</string>
-    <string name="stats_total_period_label">جمع این دوره: %1$s تومان</string>
+    <string name="stats_total_period_label">جمع این دوره:&#160;%1$s&#160;تومان</string>
+    <string name="chart_no_data">داده‌ای برای نمایش وجود ندارد</string>
+    <string name="chart_category_count">%1$d دسته‌بندی هزینه</string>
 
     <string name="backup_export">خروجی پشتیبان</string>
     <string name="backup_export_subtitle">همه‌ی هزینه‌ها را در یک فایل ذخیره کن</string>

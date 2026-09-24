@@ -45,7 +45,11 @@ class PieChartView @JvmOverloads constructor(
     fun setData(newSlices: List<Slice>, animate: Boolean = true) {
         slices = newSlices.filter { it.amount > 0f }
         animator?.cancel()
-        contentDescription = if (slices.isEmpty()) "No data" else "${slices.size} categories"
+        contentDescription = if (slices.isEmpty()) {
+            context.getString(R.string.chart_no_data)
+        } else {
+            context.getString(R.string.chart_category_count, slices.size)
+        }
         if (!animate) {
             progress = 1f
             invalidate()
@@ -53,7 +57,7 @@ class PieChartView @JvmOverloads constructor(
         }
         progress = 0f
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 900
+            duration = 560
             interpolator = DecelerateInterpolator()
             addUpdateListener {
                 progress = it.animatedValue as Float

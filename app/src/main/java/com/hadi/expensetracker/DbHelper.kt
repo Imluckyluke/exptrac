@@ -5,7 +5,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null, 4) {
+class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null, 5) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
@@ -22,6 +22,7 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
         createSmsTables(db)
         createCustomBanksTable(db)
         createCustomCategoriesTable(db)
+        createExpenseDateIndex(db)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -35,6 +36,36 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
         }
         if (oldVersion < 4) {
             createCustomCategoriesTable(db)
+        }
+        if (oldVersion < 5) {
+            normalizeExpenseDates(db)
+            createExpenseDateIndex(db)
+        }
+    }
+
+    private fun createExpenseDateIndex(db: SQLiteDatabase) {
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date)")
+    }
+
+    private fun normalizeExpenseDates(db: SQLiteDatabase) {
+        val updates = mutableListOf<Pair<Long, String>>()
+        val cursor = db.query("expenses", arrayOf("id", "date"), null, null, null, null, null)
+        cursor.use {
+            val idIndex = it.getColumnIndexOrThrow("id")
+            val dateIndex = it.getColumnIndexOrThrow("date")
+            while (it.moveToNext()) {
+                val original = it.getString(dateIndex)
+                val normalized = PersianDate.normalizeDateKey(original) ?: continue
+                if (normalized != original) updates += it.getLong(idIndex) to normalized
+            }
+        }
+        for ((id, normalized) in updates) {
+            db.update(
+                "expenses",
+                ContentValues().apply { put("date", normalized) },
+                "id = ?",
+                arrayOf(id.toString())
+            )
         }
     }
 
@@ -91,7 +122,7 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
     fun insertExpense(date: String, title: String, amount: Double, category: String = Category.DEFAULT): Long {
         val db = writableDatabase
         val values = ContentValues().apply {
-            put("date", date)
+            put("date", PersianDate.normalizeDateKey(date) ?: date)
             put("title", title)
             put("amount", amount)
             put("category", category)
@@ -118,7 +149,8 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
         }
         return Expense(
             id = cursor.getLong(cursor.getColumnIndexOrThrow("id")),
-            date = cursor.getString(cursor.getColumnIndexOrThrow("date")),
+            date = PersianDate.normalizeDateKey(cursor.getString(cursor.getColumnIndexOrThrow("date")))
+                ?: cursor.getString(cursor.getColumnIndexOrThrow("date")),
             title = cursor.getString(cursor.getColumnIndexOrThrow("title")),
             amount = cursor.getDouble(cursor.getColumnIndexOrThrow("amount")),
             category = if (Category.isValid(category)) category else Category.DEFAULT
@@ -127,9 +159,10 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
 
     fun getExpensesForDate(date: String): List<Expense> {
         val list = mutableListOf<Expense>()
+        val normalizedDate = PersianDate.normalizeDateKey(date) ?: date
         val db = readableDatabase
         val cursor = db.query(
-            "expenses", null, "date = ?", arrayOf(date),
+            "expenses", null, "date = ?", arrayOf(normalizedDate),
             null, null, "id ASC"
         )
         cursor.use {
@@ -141,9 +174,13 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
     /** All expenses whose date key starts with [monthPrefix] (e.g. "1404-06-"), oldest first. */
     fun getExpensesForMonth(monthPrefix: String): List<Expense> {
         val list = mutableListOf<Expense>()
+        val normalizedPrefix = monthPrefix.trimEnd('-').let {
+            PersianDate.normalizeDateKey("${it}-01")
+                ?.let { key -> key.substring(0, 7) + "-" }
+        } ?: monthPrefix
         val db = readableDatabase
         val cursor = db.query(
-            "expenses", null, "date LIKE ?", arrayOf("$monthPrefix%"),
+            "expenses", null, "date LIKE ?", arrayOf("$normalizedPrefix%"),
             null, null, "date ASC, id ASC"
         )
         cursor.use {
@@ -155,9 +192,11 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
     /** Every expense in [startKey]..[endKey] inclusive (keys are zero-padded so TEXT compare works). */
     fun getExpensesForDateRange(startKey: String, endKey: String): List<Expense> {
         val list = mutableListOf<Expense>()
+        val normalizedStart = PersianDate.normalizeDateKey(startKey) ?: startKey
+        val normalizedEnd = PersianDate.normalizeDateKey(endKey) ?: endKey
         val db = readableDatabase
         val cursor = db.query(
-            "expenses", null, "date >= ? AND date <= ?", arrayOf(startKey, endKey),
+            "expenses", null, "date >= ? AND date <= ?", arrayOf(normalizedStart, normalizedEnd),
             null, null, "date ASC, id ASC"
         )
         cursor.use {
@@ -167,10 +206,11 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
     }
 
     fun hasExpense(date: String, title: String, amount: Double): Boolean {
+        val normalizedDate = PersianDate.normalizeDateKey(date) ?: date
         val db = readableDatabase
         val cursor = db.query(
             "expenses", arrayOf("amount"), "date = ? AND title = ?",
-            arrayOf(date, title),
+            arrayOf(normalizedDate, title),
             null, null, null
         )
         cursor.use {

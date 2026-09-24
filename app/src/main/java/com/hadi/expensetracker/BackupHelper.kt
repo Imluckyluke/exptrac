@@ -90,8 +90,7 @@ object BackupHelper {
         root.optJSONArray("expenses")?.let { array ->
             for (i in 0 until array.length()) {
                 val obj = array.getJSONObject(i)
-                val date = obj.optString("date")
-                if (date.isBlank()) continue
+                val date = PersianDate.normalizeDateKey(obj.optString("date")) ?: continue
                 val title = obj.optString("title")
                 val amount = obj.optDouble("amount", Double.NaN)
                 if (amount.isNaN() || title.isBlank()) continue

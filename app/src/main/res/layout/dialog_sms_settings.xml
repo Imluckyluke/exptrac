@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layoutDirection="locale"
     android:maxHeight="620dp">
 
     <LinearLayout
@@ -21,6 +22,8 @@
             android:textAppearance="?attr/textAppearanceTitleMedium"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
             android:text="@string/sms_settings_title" />
 
         <TextView
@@ -29,6 +32,9 @@
             android:layout_marginTop="6dp"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale"
             android:text="@string/sms_settings_subtitle" />
 
         <TextView
@@ -38,6 +44,9 @@
             android:layout_marginStart="4dp"
             android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="?attr/colorOnSurfaceVariant"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale"
             android:text="@string/sms_settings_presets_title" />
 
         <com.google.android.material.card.MaterialCardView
@@ -89,15 +98,23 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            android:textColor="?attr/colorOnSurface"
+                             android:textAppearance="?attr/textAppearanceBodyLarge"
+                             android:textColor="?attr/colorOnSurface"
+                             android:fontFamily="sans-serif"
+                             android:includeFontPadding="false"
+                             android:textDirection="locale"
+
                             android:text="@string/bank_preset_blu" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant"
+                             android:textAppearance="?attr/textAppearanceBodySmall"
+                             android:textColor="?attr/colorOnSurfaceVariant"
+                             android:fontFamily="sans-serif"
+                             android:includeFontPadding="false"
+                             android:textDirection="locale"
+
                             android:text="@string/bank_preset_blu_desc" />
                     </LinearLayout>
 
@@ -144,15 +161,23 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            android:textColor="?attr/colorOnSurface"
+                             android:textAppearance="?attr/textAppearanceBodyLarge"
+                             android:textColor="?attr/colorOnSurface"
+                             android:fontFamily="sans-serif"
+                             android:includeFontPadding="false"
+                             android:textDirection="locale"
+
                             android:text="@string/bank_preset_melli" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant"
+                             android:textAppearance="?attr/textAppearanceBodySmall"
+                             android:textColor="?attr/colorOnSurfaceVariant"
+                             android:fontFamily="sans-serif"
+                             android:includeFontPadding="false"
+                             android:textDirection="locale"
+
                             android:text="@string/bank_preset_melli_desc" />
                     </LinearLayout>
 
@@ -171,6 +196,9 @@
             android:layout_marginStart="4dp"
             android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="?attr/colorOnSurfaceVariant"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale"
             android:text="@string/sms_settings_custom_title" />
 
         <com.google.android.material.card.MaterialCardView
@@ -204,9 +232,12 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:layout_marginBottom="2dp"
-                    android:textAllCaps="false"
-                    app:icon="@drawable/ic_add"
-                    android:text="@string/btn_add_bank" />
+            android:textAllCaps="false"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            app:icon="@drawable/ic_add"
+            android:text="@string/btn_add_bank" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -238,6 +269,9 @@
                 android:layout_marginStart="10dp"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
+                android:fontFamily="sans-serif"
+                android:includeFontPadding="false"
+                android:textDirection="locale"
                 tools:ignore="HardcodedText"
                 tools:text="Permission: granted" />
         </LinearLayout>
@@ -249,6 +283,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textAllCaps="false"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
             android:text="@string/btn_grant_sms_permission" />
 
     </LinearLayout>

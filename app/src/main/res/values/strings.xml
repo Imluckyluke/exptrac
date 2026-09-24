@@ -4,7 +4,7 @@
     <string name="btn_previous">‹ Prev</string>
     <string name="btn_next">Next ›</string>
     <string name="date_placeholder">Today</string>
-    <string name="total_label">Total today: %1$s Toman</string>
+    <string name="total_label">Total today:&#160;%1$s&#160;Toman</string>
     <string name="hint_description">Description (e.g. Bread)</string>
     <string name="hint_amount">Amount (Toman)</string>
     <string name="btn_add">Add Expense</string>
@@ -46,6 +46,7 @@
     <string name="hint_bank_sample">Paste a sample transaction SMS from this bank</string>
     <string name="preview_bank_sample_title">What we\'d extract from this sample:</string>
     <string name="preview_bank_sample_empty">Paste a sample above to preview</string>
+    <string name="preview_bank_amount_format">%1$s — %2$s Toman</string>
     <string name="msg_bank_fields_required">Enter a name, sender number, and sample message</string>
     <string name="msg_bank_added">Bank added</string>
     <string name="msg_bank_removed">Bank removed</string>
@@ -64,7 +65,7 @@
     <string name="widget_untitled_prompt">What was this deposit/withdrawal for?</string>
     <string name="widget_no_data">No transactions yet</string>
     <string name="widget_balance_unknown">No data yet</string>
-    <string name="widget_amount_format">%1$s Toman</string>
+    <string name="widget_amount_format">%1$s&#160;Toman</string>
 
     <string name="cd_stats">Monthly overview</string>
     <string name="cd_language">Change language</string>
@@ -81,14 +82,16 @@
     <string name="cat_entertainment">Entertainment</string>
     <string name="cat_other">Other</string>
     <string name="stats_title">Monthly overview</string>
-    <string name="stats_total_label">Total this month: %1$s Toman</string>
+    <string name="stats_total_label">Total this month:&#160;%1$s&#160;Toman</string>
     <string name="stats_by_category_title">By category</string>
     <string name="stats_by_day_title">By day</string>
     <string name="stats_no_data">No expenses this month yet</string>
     <string name="stats_day_format">Day %1$d</string>
     <string name="stats_mode_half">Half-month view</string>
     <string name="stats_mode_month">Monthly view</string>
-    <string name="stats_total_period_label">Total this period: %1$s Toman</string>
+    <string name="stats_total_period_label">Total this period:&#160;%1$s&#160;Toman</string>
+    <string name="chart_no_data">No spending data</string>
+    <string name="chart_category_count">%1$d spending categories</string>
 
     <string name="backup_export">Export backup</string>
     <string name="backup_export_subtitle">Save all your expenses to a file</string>

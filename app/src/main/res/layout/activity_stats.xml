@@ -5,14 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:layoutDirection="locale"
     android:background="?attr/colorSurface"
-    android:paddingTop="24dp">
+    android:paddingTop="@dimen/screen_top_padding">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
+        android:minHeight="@dimen/toolbar_min_height"
         android:paddingStart="@dimen/screen_h_padding"
         android:paddingEnd="@dimen/screen_h_padding">
 
@@ -32,6 +34,9 @@
             android:textAppearance="?attr/textAppearanceTitleMedium"
             android:textStyle="bold"
             android:textColor="?attr/colorOnSurface"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale"
             android:text="@string/stats_title" />
 
         <com.google.android.material.button.MaterialButton
@@ -39,6 +44,11 @@
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minWidth="112dp"
+            android:minHeight="@dimen/toolbar_min_height"
+            android:textAllCaps="false"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
             android:text="@string/stats_mode_half" />
 
     </LinearLayout>
@@ -70,6 +80,9 @@
             android:ellipsize="end"
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="?attr/colorOnSurface"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale"
             tools:ignore="HardcodedText"
             tools:text="1404 / 06" />
 
@@ -84,6 +97,7 @@
     </LinearLayout>
 
     <ScrollView
+        android:id="@+id/statsScroll"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
@@ -109,10 +123,14 @@
                     android:id="@+id/tvMonthTotal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="18dp"
+                    android:padding="@dimen/content_gap_large"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textStyle="bold"
                     android:textColor="?attr/colorPrimary"
+                    android:fontFamily="sans-serif"
+                    android:fontFeatureSettings="tnum"
+                    android:includeFontPadding="false"
+                    android:textDirection="locale"
                     tools:ignore="HardcodedText"
                     tools:text="Total this month: 2,500,000 Toman" />
             </com.google.android.material.card.MaterialCardView>
@@ -130,13 +148,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="18dp">
+                    android:padding="@dimen/content_gap_large">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textAppearance="?attr/textAppearanceLabelLarge"
                         android:textColor="?attr/colorOnSurfaceVariant"
+                        android:fontFamily="sans-serif"
+                        android:includeFontPadding="false"
+                        android:textDirection="locale"
                         android:text="@string/stats_by_category_title" />
 
                     <com.hadi.expensetracker.PieChartView
@@ -169,13 +190,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="18dp">
+                    android:padding="@dimen/content_gap_large">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textAppearance="?attr/textAppearanceLabelLarge"
                         android:textColor="?attr/colorOnSurfaceVariant"
+                        android:fontFamily="sans-serif"
+                        android:includeFontPadding="false"
+                        android:textDirection="locale"
                         android:text="@string/stats_by_day_title" />
 
                     <LinearLayout
@@ -193,10 +217,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:gravity="center"
-                android:visibility="gone"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:text="@string/stats_no_data" />
+            android:visibility="gone"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale"
+            android:text="@string/stats_no_data" />
+
 
         </LinearLayout>
     </ScrollView>

@@ -1,5 +1,10 @@
 package com.hadi.expensetracker
 
+import java.text.NumberFormat
+import java.util.Calendar
+import java.util.GregorianCalendar
+import java.util.Locale
+
 object PersianDate {
 
     private val monthNames = arrayOf(
@@ -7,7 +12,25 @@ object PersianDate {
         "Mehr", "Aban", "Azar", "Dey", "Bahman", "Esfand"
     )
 
-    fun monthName(m: Int): String = monthNames[m - 1]
+    private val persianMonthNames = arrayOf(
+        "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
+        "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
+    )
+
+    fun monthName(m: Int, persian: Boolean = false): String =
+        (if (persian) persianMonthNames else monthNames)[m - 1]
+
+    fun displayNumber(value: Int, locale: Locale): String =
+        NumberFormat.getIntegerInstance(locale).apply { setGroupingUsed(false) }.format(value)
+
+    fun fromEpochMillis(epochMillis: Long): Triple<Int, Int, Int> {
+        val cal = GregorianCalendar(Locale.US).apply { timeInMillis = epochMillis }
+        return gregorianToJalali(
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH) + 1,
+            cal.get(Calendar.DAY_OF_MONTH)
+        )
+    }
 
     // Gregorian -> Jalali
     fun gregorianToJalali(gy0: Int, gm: Int, gd: Int): Triple<Int, Int, Int> {
@@ -95,5 +118,29 @@ object PersianDate {
     }
 
     fun dateKey(jy: Int, jm: Int, jd: Int): String =
-        String.format("%04d-%02d-%02d", jy, jm, jd)
+        String.format(Locale.US, "%04d-%02d-%02d", jy, jm, jd)
+
+    fun monthPrefix(jy: Int, jm: Int): String =
+        String.format(Locale.US, "%04d-%02d-", jy, jm)
+
+    fun normalizeDateKey(value: String): String? {
+        val ascii = buildString(value.length) {
+            value.trim().forEach { ch ->
+                val digit = when (ch) {
+                    in '۰'..'۹' -> '0'.code + (ch.code - '۰'.code)
+                    in '٠'..'٩' -> '0'.code + (ch.code - '٠'.code)
+                    in '0'..'9' -> ch.code
+                    else -> -1
+                }
+                if (digit >= 0) append(digit.toChar())
+                else append(ch)
+            }
+        }
+        if (ascii.length != 10 || ascii[4] != '-' || ascii[7] != '-') return null
+        val year = ascii.substring(0, 4).toIntOrNull() ?: return null
+        val month = ascii.substring(5, 7).toIntOrNull() ?: return null
+        val day = ascii.substring(8, 10).toIntOrNull() ?: return null
+        if (month !in 1..12 || day !in 1..daysInJalaliMonth(year, month)) return null
+        return dateKey(year, month, day)
+    }
 }

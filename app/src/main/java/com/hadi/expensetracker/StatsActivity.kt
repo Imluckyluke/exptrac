@@ -3,6 +3,7 @@ package com.hadi.expensetracker
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -24,6 +25,7 @@ class StatsActivity : AppCompatActivity() {
     private var hy = 0
     private var hm = 0
     private var halfSecond = false
+    private var isTransitioning = false
 
     private lateinit var tvMonthLabel: TextView
     private lateinit var tvMonthTotal: TextView
@@ -69,27 +71,95 @@ class StatsActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<View>(R.id.btnBack).setOnClickListener { finishWithTransition() }
-        findViewById<View>(R.id.btnPrevMonth).setOnClickListener { if (halfMode) changeHalf(-1) else changeMonth(-1) }
-        findViewById<View>(R.id.btnNextMonth).setOnClickListener { if (halfMode) changeHalf(1) else changeMonth(1) }
-        findViewById<View>(R.id.btnMode).setOnClickListener {
+        val btnBack = findViewById<View>(R.id.btnBack)
+        val btnPrevMonth = findViewById<View>(R.id.btnPrevMonth)
+        val btnNextMonth = findViewById<View>(R.id.btnNextMonth)
+        val btnMode = findViewById<View>(R.id.btnMode)
+        listOf(btnBack, btnPrevMonth, btnNextMonth, btnMode).forEach { it.applyPressAnimation() }
+        updateDirectionalIcons()
+
+        btnBack.setOnClickListener { finishWithTransition() }
+        btnPrevMonth.setOnClickListener {
+            if (isTransitioning) return@setOnClickListener
+            if (halfMode) changeHalf(-1) else changeMonth(-1)
+        }
+        btnNextMonth.setOnClickListener {
+            if (isTransitioning) return@setOnClickListener
+            if (halfMode) changeHalf(1) else changeMonth(1)
+        }
+        btnMode.setOnClickListener {
+            if (isTransitioning) return@setOnClickListener
             halfMode = !halfMode
-            updateModeButton()
-            loadCurrent()
+            updateModeButton(animate = true)
+            loadCurrent(animate = true, direction = if (halfMode) 1 else -1)
         }
         updateModeButton()
 
         loadCurrent()
     }
 
-    private fun updateModeButton() {
-        findViewById<android.widget.Button>(R.id.btnMode)?.let {
-            it.text = getString(if (halfMode) R.string.stats_mode_month else R.string.stats_mode_half)
+    private fun updateModeButton(animate: Boolean = false) {
+        findViewById<android.widget.Button>(R.id.btnMode)?.let { button ->
+            button.text = getString(if (halfMode) R.string.stats_mode_month else R.string.stats_mode_half)
+            if (animate) {
+                button.animate().cancel()
+                button.rotationY = 12f
+                button.scaleX = 0.96f
+                button.animate()
+                    .rotationY(0f)
+                    .scaleX(1f)
+                    .setDuration(170)
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
+            }
         }
     }
 
-    private fun loadCurrent() {
+    private fun updateDirectionalIcons() {
+        val rtl = resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnBack)
+            .setIconResource(if (rtl) R.drawable.ic_chevron_right else R.drawable.ic_chevron_left)
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnPrevMonth)
+            .setIconResource(if (rtl) R.drawable.ic_chevron_right else R.drawable.ic_chevron_left)
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnNextMonth)
+            .setIconResource(if (rtl) R.drawable.ic_chevron_left else R.drawable.ic_chevron_right)
+    }
+
+    private fun loadCurrent(animate: Boolean = false, direction: Int = 0) {
+        if (isTransitioning) return
+        val content = findViewById<View>(R.id.statsScroll)
+        if (animate && content != null) {
+            isTransitioning = true
+            content.animate().cancel()
+            content.alpha = 0.68f
+            content.scaleY = 0.99f
+            content.translationX = 18f * direction.coerceAtLeast(-1).coerceAtMost(1)
+        }
         if (halfMode) loadHalf() else loadMonth()
+        if (animate) {
+            tvMonthLabel.animate().cancel()
+            tvMonthLabel.translationY = 5f
+            tvMonthLabel.animate().translationY(0f).setDuration(170).start()
+            tvMonthTotal.animate().cancel()
+            tvMonthTotal.scaleX = 0.98f
+            tvMonthTotal.scaleY = 0.98f
+            tvMonthTotal.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(180)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
+        if (animate && content != null) {
+            content.animate()
+                .alpha(1f)
+                .scaleY(1f)
+                .translationX(0f)
+                .setDuration(190)
+                .setInterpolator(DecelerateInterpolator())
+                .withEndAction { isTransitioning = false }
+                .start()
+        }
     }
 
     private fun changeMonth(delta: Int) {
@@ -101,7 +171,7 @@ class StatsActivity : AppCompatActivity() {
             jm = 12
             jy--
         }
-        loadCurrent()
+        loadCurrent(animate = true, direction = delta)
     }
 
     private fun nextMonthOf(y: Int, m: Int): Pair<Int, Int> = if (m == 12) Pair(y + 1, 1) else Pair(y, m + 1)
@@ -119,7 +189,7 @@ class StatsActivity : AppCompatActivity() {
                 }
             }
         }
-        loadCurrent()
+        loadCurrent(animate = true, direction = delta)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -132,37 +202,67 @@ class StatsActivity : AppCompatActivity() {
         outState.putBoolean("halfSecond", halfSecond)
     }
 
+    private fun displayNumber(value: Int): String =
+        PersianDate.displayNumber(value, resources.configuration.locales[0])
+
+    private fun displayMonth(value: Int): String =
+        PersianDate.monthName(value, resources.configuration.locales[0].language == "fa")
+
+    private fun setNoData(shouldShow: Boolean) {
+        val isVisible = tvNoData.visibility == View.VISIBLE
+        if (shouldShow == isVisible) return
+        tvNoData.animate().cancel()
+        if (shouldShow) {
+            tvNoData.visibility = View.VISIBLE
+            tvNoData.alpha = 0f
+            tvNoData.translationY = 8f
+            tvNoData.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(170)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        } else {
+            tvNoData.animate()
+                .alpha(0f)
+                .translationY(-6f)
+                .setDuration(120)
+                .withEndAction { tvNoData.visibility = View.GONE }
+                .start()
+        }
+    }
+
     private fun loadHalf() {
         val sKey: String
         val eKey: String
         if (!halfSecond) {
             sKey = PersianDate.dateKey(hy, hm, 5)
             eKey = PersianDate.dateKey(hy, hm, 20)
-            tvMonthLabel.text = "5 ${PersianDate.monthName(hm)} - 20 ${PersianDate.monthName(hm)} $hy"
+            tvMonthLabel.text = "${displayNumber(5)} ${displayMonth(hm)} - ${displayNumber(20)} ${displayMonth(hm)} ${displayNumber(hy)}"
         } else {
             val (ny, nm) = nextMonthOf(hy, hm)
             sKey = PersianDate.dateKey(hy, hm, 20)
             eKey = PersianDate.dateKey(ny, nm, 5)
-            tvMonthLabel.text = "20 ${PersianDate.monthName(hm)} - 5 ${PersianDate.monthName(nm)} $ny"
+            tvMonthLabel.text = "${displayNumber(20)} ${displayMonth(hm)} - ${displayNumber(5)} ${displayMonth(nm)} ${displayNumber(ny)}"
         }
         val expenses = dbHelper.getExpensesForDateRange(sKey, eKey)
         val total = expenses.sumOf { it.amount }
         tvMonthTotal.text = getString(R.string.stats_total_period_label, formatter.format(total))
-        tvNoData.visibility = if (expenses.isEmpty()) View.VISIBLE else View.GONE
+        setNoData(expenses.isEmpty())
         renderCategoryBars(expenses)
         renderDayTotals(expenses)
     }
 
     private fun loadMonth() {
-        tvMonthLabel.text = "${PersianDate.monthName(jm)} $jy"
+        tvMonthLabel.text = "${displayMonth(jm)} ${displayNumber(jy)}"
 
-        val monthPrefix = String.format("%04d-%02d-", jy, jm)
+        val monthPrefix = PersianDate.monthPrefix(jy, jm)
         val expenses = dbHelper.getExpensesForMonth(monthPrefix)
 
         val total = expenses.sumOf { it.amount }
         tvMonthTotal.text = getString(R.string.stats_total_label, formatter.format(total))
 
-        tvNoData.visibility = if (expenses.isEmpty()) View.VISIBLE else View.GONE
+        setNoData(expenses.isEmpty())
 
         renderCategoryBars(expenses)
         renderDayTotals(expenses)

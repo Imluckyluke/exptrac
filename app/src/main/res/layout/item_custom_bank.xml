@@ -6,8 +6,9 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp">
+    android:layoutDirection="locale"
+    android:paddingTop="@dimen/row_vertical_padding"
+    android:paddingBottom="@dimen/row_vertical_padding">
 
     <com.google.android.material.button.MaterialButton
         style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
@@ -35,6 +36,8 @@
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="?attr/colorOnSurface"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
             android:textDirection="locale"
             tools:ignore="HardcodedText"
             tools:text="My Bank" />
@@ -45,6 +48,9 @@
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?attr/colorOnSurfaceVariant"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale"
             tools:ignore="HardcodedText"
             tools:text="Sender: 3000123" />
     </LinearLayout>

@@ -4,8 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp">
+    android:layoutDirection="locale"
+    android:paddingTop="@dimen/content_gap_small"
+    android:paddingBottom="@dimen/content_gap_small">
 
     <TextView
         android:id="@+id/tvDayLabel"
@@ -14,6 +15,9 @@
         android:layout_weight="1"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurfaceVariant"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
+        android:textDirection="locale"
         tools:ignore="HardcodedText"
         tools:text="Day 5" />
 
@@ -24,6 +28,11 @@
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textStyle="bold"
         android:textColor="?attr/colorOnSurface"
+        android:gravity="end"
+        android:textDirection="ltr"
+        android:fontFamily="sans-serif"
+        android:fontFeatureSettings="tnum"
+        android:includeFontPadding="false"
         tools:ignore="HardcodedText"
         tools:text="85,000" />
 

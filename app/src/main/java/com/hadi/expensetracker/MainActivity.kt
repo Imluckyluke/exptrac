@@ -13,6 +13,7 @@ import android.text.TextWatcher
 import android.text.format.DateFormat
 import android.view.View
 import android.view.MotionEvent
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -51,6 +52,11 @@ import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
+    private companion object {
+        const val KEY_LANGUAGE_TRANSITION = "language_transition"
+        const val KEY_LANGUAGE_DIRECTION = "language_direction"
+    }
+
     private lateinit var binding: ActivityMainBinding
     private lateinit var dbHelper: DbHelper
     private lateinit var adapter: ExpenseAdapter
@@ -74,6 +80,8 @@ class MainActivity : AppCompatActivity() {
     // Tracks whether the header card is currently showing its "scrolled" shadow, so we
     // only animate a transition when the state actually changes.
     private var isHeaderElevated = false
+    private var dayChangeGeneration = 0
+    private var expenseItemAnimator: RecyclerView.ItemAnimator? = null
 
     // While the SMS settings dialog is open, points at its permission-status label so the
     // permission launcher's callback can refresh it.
@@ -81,10 +89,12 @@ class MainActivity : AppCompatActivity() {
 
     // Prevents a second review dialog chain from starting while one is already showing.
     private var isReviewFlowActive = false
+    private var isLanguageSwitching = false
+    private var languageTransitionDirection = 1
 
     private val smsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
-            smsPermissionStatusView?.let { updatePermissionStatusText(it) }
+            smsPermissionStatusView?.let { updatePermissionStatusText(it, animate = true) }
         }
 
     private val exportBackupLauncher =
@@ -116,7 +126,11 @@ class MainActivity : AppCompatActivity() {
                     ),
                     Snackbar.LENGTH_LONG
                 ).show()
-                populateCategoryChips(binding.chipGroupCategory, selectedCategory(binding.chipGroupCategory))
+                populateCategoryChips(
+                    binding.chipGroupCategory,
+                    selectedCategory(binding.chipGroupCategory),
+                    animate = true
+                )
                 refreshList()
                 BalanceWidgetProvider.updateAll(this)
             } catch (e: Exception) {
@@ -162,11 +176,12 @@ class MainActivity : AppCompatActivity() {
         binding.rvExpenses.layoutManager = LinearLayoutManager(this)
         binding.rvExpenses.adapter = adapter
         (binding.rvExpenses.itemAnimator as? SimpleItemAnimator)?.apply {
-            addDuration = 220
-            removeDuration = 220
-            moveDuration = 220
-            changeDuration = 180
+            addDuration = 170
+            removeDuration = 160
+            moveDuration = 180
+            changeDuration = 150
         }
+        expenseItemAnimator = binding.rvExpenses.itemAnimator
 
         ItemTouchHelper(SwipeToDeleteCallback(binding.rvExpenses) { position ->
             if (position < 0) return@SwipeToDeleteCallback
@@ -181,6 +196,7 @@ class MainActivity : AppCompatActivity() {
         binding.rvExpenses.addOnItemTouchListener(DaySwipeGestureListener())
 
         setupScrollElevation()
+        updateDirectionalDateIcons()
 
         binding.btnPrev.applyPressAnimation()
         binding.btnNext.applyPressAnimation()
@@ -207,6 +223,11 @@ class MainActivity : AppCompatActivity() {
 
         updateDateLabel(animate = false)
         refreshList()
+
+        if (savedInstanceState?.getBoolean(KEY_LANGUAGE_TRANSITION) == true) {
+            val direction = savedInstanceState.getInt(KEY_LANGUAGE_DIRECTION, 1)
+            binding.root.post { binding.root.animateContentIn(direction) }
+        }
     }
 
     override fun onResume() {
@@ -226,11 +247,13 @@ class MainActivity : AppCompatActivity() {
         outState.putInt("todayY", todayY)
         outState.putInt("todayM", todayM)
         outState.putInt("todayD", todayD)
+        outState.putBoolean(KEY_LANGUAGE_TRANSITION, isLanguageSwitching)
+        outState.putInt(KEY_LANGUAGE_DIRECTION, languageTransitionDirection)
     }
 
     // ---- Category chips ----
 
-    private fun populateCategoryChips(chipGroup: ChipGroup, selectedId: String) {
+    private fun populateCategoryChips(chipGroup: ChipGroup, selectedId: String, animate: Boolean = false) {
         chipGroup.removeAllViews()
         for (item in Category.ALL) {
             val chip = Chip(this)
@@ -242,6 +265,10 @@ class MainActivity : AppCompatActivity() {
             chip.chipIcon?.setTint(ContextCompat.getColor(this, item.colorRes))
             chip.chipIconSize = resources.getDimension(R.dimen.category_dot_size)
             chip.isChipIconVisible = true
+            chip.setEnsureMinTouchTargetSize(false)
+            chip.setChipStartPadding(10f * resources.displayMetrics.density)
+            chip.setChipEndPadding(10f * resources.displayMetrics.density)
+            chip.applyPressAnimation(0.94f)
             chip.shapeAppearanceModel = ShapeAppearanceModel.builder()
                 .setAllCornerSizes(20f * resources.displayMetrics.density)
                 .build()
@@ -259,6 +286,7 @@ class MainActivity : AppCompatActivity() {
             showManageCategoriesDialog(chipGroup)
         }
         chipGroup.addView(addChip)
+        if (animate) chipGroup.animateChildrenIn(16L)
     }
 
     /** One place to add or remove custom categories, shared by the expense form and the SMS
@@ -266,53 +294,91 @@ class MainActivity : AppCompatActivity() {
     private fun showManageCategoriesDialog(chipGroup: ChipGroup) {
         val dialogBinding = DialogManageCategoriesBinding.inflate(layoutInflater)
         var selectedColorIndex = Category.suggestedColorIndex()
+        val swatches = mutableMapOf<Int, View>()
 
         fun renderColorPicker() {
-            dialogBinding.llColorPicker.removeAllViews()
-            val swatchSize = (28 * resources.displayMetrics.density).toInt()
-            val swatchMargin = (8 * resources.displayMetrics.density).toInt()
-            Category.COLOR_PALETTE.forEachIndexed { index, colorRes ->
-                val swatch = View(this)
-                val params = LinearLayout.LayoutParams(swatchSize, swatchSize)
-                params.marginEnd = swatchMargin
-                swatch.layoutParams = params
-                swatch.background = ContextCompat.getDrawable(this, R.drawable.dot_category)?.mutate()
-                swatch.background?.setTint(ContextCompat.getColor(this, colorRes))
-                val isSelected = index == selectedColorIndex
-                swatch.alpha = if (isSelected) 1f else 0.4f
-                swatch.scaleX = if (isSelected) 1.15f else 1f
-                swatch.scaleY = if (isSelected) 1.15f else 1f
-                swatch.setOnClickListener {
-                    selectedColorIndex = index
-                    renderColorPicker()
+            if (swatches.isEmpty()) {
+                val swatchSize = (28 * resources.displayMetrics.density).toInt()
+                val swatchMargin = (8 * resources.displayMetrics.density).toInt()
+                Category.COLOR_PALETTE.forEachIndexed { index, colorRes ->
+                    val swatch = View(this)
+                    val params = LinearLayout.LayoutParams(swatchSize, swatchSize)
+                    params.marginEnd = swatchMargin
+                    swatch.layoutParams = params
+                    swatch.background = ContextCompat.getDrawable(this, R.drawable.dot_category)?.mutate()
+                    swatch.background?.setTint(ContextCompat.getColor(this, colorRes))
+                    swatch.applyPressAnimation(0.88f)
+                    swatch.setOnClickListener {
+                        selectedColorIndex = index
+                        renderColorPicker()
+                    }
+                    swatches[index] = swatch
+                    dialogBinding.llColorPicker.addView(swatch)
                 }
-                dialogBinding.llColorPicker.addView(swatch)
+                dialogBinding.llColorPicker.animateChildrenIn(12L)
+            }
+            for ((index, swatch) in swatches) {
+                val isSelected = index == selectedColorIndex
+                swatch.animate().cancel()
+                swatch.animate()
+                    .alpha(if (isSelected) 1f else 0.4f)
+                    .scaleX(if (isSelected) 1.15f else 1f)
+                    .scaleY(if (isSelected) 1.15f else 1f)
+                    .setDuration(150)
+                    .setInterpolator(android.view.animation.DecelerateInterpolator())
+                    .start()
             }
         }
 
         fun refreshCategoryList() {
             dialogBinding.llCustomCategories.removeAllViews()
             val categories = Category.ALL
-            dialogBinding.tvNoCustomCategories.visibility = if (categories.isEmpty()) View.VISIBLE else View.GONE
+            val showEmpty = categories.isEmpty()
+            val emptyIsVisible = dialogBinding.tvNoCustomCategories.visibility == View.VISIBLE
+            if (showEmpty != emptyIsVisible) {
+                if (showEmpty) {
+                    dialogBinding.tvNoCustomCategories.visibility = View.VISIBLE
+                    dialogBinding.tvNoCustomCategories.alpha = 0f
+                    dialogBinding.tvNoCustomCategories.translationY = 8f
+                    dialogBinding.tvNoCustomCategories.animate().alpha(1f).translationY(0f).setDuration(150).start()
+                } else {
+                    dialogBinding.tvNoCustomCategories.animate().alpha(0f).setDuration(100)
+                        .withEndAction { dialogBinding.tvNoCustomCategories.visibility = View.GONE }
+                        .start()
+                }
+            }
             for (item in categories) {
                 val rowBinding = ItemCustomCategoryBinding.inflate(layoutInflater, dialogBinding.llCustomCategories, false)
                 rowBinding.tvCategoryLabel.text = item.label
                 rowBinding.catDot.background.mutate().setTint(ContextCompat.getColor(this, item.colorRes))
+                rowBinding.btnDeleteCategory.applyPressAnimation()
                 if (item.id == Category.DEFAULT) {
-                    // Always kept around as the fallback bucket for uncategorized expenses.
                     rowBinding.btnDeleteCategory.visibility = View.GONE
                 } else {
                     rowBinding.btnDeleteCategory.setOnClickListener {
+                        rowBinding.btnDeleteCategory.isEnabled = false
                         val fallback = selectedCategory(chipGroup)
-                        if (Category.isBuiltIn(item.id)) {
-                            Category.hideBuiltIn(this, dbHelper, item.id)
-                        } else {
-                            Category.customRowId(item.id)?.let { dbHelper.deleteCustomCategory(it) }
-                            Category.refresh(this, dbHelper)
-                        }
-                        refreshCategoryList()
-                        populateCategoryChips(chipGroup, if (fallback == item.id) Category.DEFAULT else fallback)
-                        Snackbar.make(binding.root, R.string.msg_category_removed, Snackbar.LENGTH_SHORT).show()
+                        rowBinding.root.animate()
+                            .alpha(0f)
+                            .scaleX(0.96f)
+                            .translationX(10f)
+                            .setDuration(140)
+                            .withEndAction {
+                                if (Category.isBuiltIn(item.id)) {
+                                    Category.hideBuiltIn(this, dbHelper, item.id)
+                                } else {
+                                    Category.customRowId(item.id)?.let { dbHelper.deleteCustomCategory(it) }
+                                    Category.refresh(this, dbHelper)
+                                }
+                                refreshCategoryList()
+                                populateCategoryChips(
+                                    chipGroup,
+                                    if (fallback == item.id) Category.DEFAULT else fallback,
+                                    animate = true
+                                )
+                                Snackbar.make(binding.root, R.string.msg_category_removed, Snackbar.LENGTH_SHORT).show()
+                            }
+                            .start()
                     }
                 }
                 dialogBinding.llCustomCategories.addView(rowBinding.root)
@@ -323,9 +389,11 @@ class MainActivity : AppCompatActivity() {
         renderColorPicker()
         refreshCategoryList()
 
+        dialogBinding.btnAddCategory.applyPressAnimation()
         dialogBinding.btnAddCategory.setOnClickListener {
             val label = dialogBinding.etCategoryLabel.text.toString().trim()
             if (label.isEmpty()) {
+                dialogBinding.etCategoryLabel.animateValidationError()
                 Snackbar.make(binding.root, R.string.msg_category_required, Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -334,7 +402,7 @@ class MainActivity : AppCompatActivity() {
             selectedColorIndex = Category.suggestedColorIndex()
             renderColorPicker()
             refreshCategoryList()
-            populateCategoryChips(chipGroup, newId)
+            populateCategoryChips(chipGroup, newId, animate = true)
             Snackbar.make(binding.root, R.string.msg_category_added, Snackbar.LENGTH_SHORT).show()
         }
 
@@ -349,6 +417,12 @@ class MainActivity : AppCompatActivity() {
         val chip = chipGroup.findViewById<Chip>(checkedId)
         val id = chip?.tag as? String
         return if (id != null && Category.isValid(id)) id else Category.DEFAULT
+    }
+
+    private fun updateDirectionalDateIcons() {
+        val rtl = resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
+        binding.btnPrev.setIconResource(if (rtl) R.drawable.ic_chevron_right else R.drawable.ic_chevron_left)
+        binding.btnNext.setIconResource(if (rtl) R.drawable.ic_chevron_left else R.drawable.ic_chevron_right)
     }
 
     /** Lifts the header card with a subtle shadow once the list underneath is scrolled. */
@@ -383,10 +457,10 @@ class MainActivity : AppCompatActivity() {
     private fun normalizeAmountInput(raw: String): String {
         val sb = StringBuilder(raw.length)
         for (ch in raw) {
-            when (ch) {
-                in '۰'..'۹' -> sb.append(ch - '۰')
-                in '٠'..'٩' -> sb.append(ch - '٠')
-                ',', '٬', '،', ' ', ' ', '٫' -> {}
+            when {
+                ch in '۰'..'۹' -> sb.append(ch - '۰')
+                ch in '٠'..'٩' -> sb.append(ch - '٠')
+                ch == ',' || ch == '٬' || ch == '،' || ch == '٫' || ch.isWhitespace() -> {}
                 else -> sb.append(ch)
             }
         }
@@ -425,6 +499,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun changeDay(delta: Int) {
+        val generation = ++dayChangeGeneration
         val (gy, gm, gd) = PersianDate.jalaliToGregorian(jy, jm, jd)
         val cal = GregorianCalendar(Locale.US)
         cal.set(gy, gm - 1, gd)
@@ -436,26 +511,35 @@ class MainActivity : AppCompatActivity() {
         )
         jy = ny; jm = nm; jd = nd
         updateDateLabel(animate = true)
-        animateDayChange()
+        animateDayChange(if (delta > 0) 1 else -1, generation)
     }
 
     /** Swaps the day's list without a visible blink. The RecyclerView's own item
      * animator is held off until the new list has landed (submitList diffs
      * asynchronously), and the content only dips to 0.9 — a full fade-out reads
      * as a flash on every day switch. */
-    private fun animateDayChange() {
+    private fun animateDayChange(direction: Int, generation: Int) {
         binding.dayContent.animate().cancel()
-        binding.dayContent.alpha = 0.9f
+        binding.dayContent.alpha = 0.88f
+        binding.dayContent.scaleX = 0.99f
+        binding.dayContent.scaleY = 0.99f
+        binding.dayContent.translationX = 12f * direction
 
-        val defaultItemAnimator = binding.rvExpenses.itemAnimator
+        val defaultItemAnimator = expenseItemAnimator ?: binding.rvExpenses.itemAnimator
         binding.rvExpenses.itemAnimator = null
 
         refreshList {
-            binding.rvExpenses.itemAnimator = defaultItemAnimator
-            binding.dayContent.animate()
-                .alpha(1f)
-                .setDuration(120)
-                .start()
+            if (generation == dayChangeGeneration) {
+                binding.rvExpenses.itemAnimator = defaultItemAnimator
+                binding.dayContent.animate()
+                    .alpha(1f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .translationX(0f)
+                    .setDuration(150)
+                    .setInterpolator(android.view.animation.DecelerateInterpolator())
+                    .start()
+            }
         }
     }
 
@@ -494,16 +578,33 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateDateLabel(animate: Boolean) {
-        val newText = "$jd ${PersianDate.monthName(jm)} $jy"
+        val locale = resources.configuration.locales[0]
+        val isPersian = locale.language == "fa"
+        val newText = "${PersianDate.displayNumber(jd, locale)} ${PersianDate.monthName(jm, isPersian)} ${PersianDate.displayNumber(jy, locale)}"
         val isToday = jy == todayY && jm == todayM && jd == todayD
 
         if (animate) {
             binding.tvDate.animate().cancel()
-            binding.tvDate.animate().alpha(0f).setDuration(100).withEndAction {
-                binding.tvDate.text = newText
-                binding.tvDate.alpha = 0f
-                binding.tvDate.animate().alpha(1f).setDuration(150).start()
-            }.start()
+            binding.tvDate.animate()
+                .alpha(0f)
+                .scaleX(0.97f)
+                .scaleY(0.97f)
+                .translationY(-5f)
+                .setDuration(90)
+                .withEndAction {
+                    binding.tvDate.text = newText
+                    binding.tvDate.alpha = 0f
+                    binding.tvDate.translationY = 5f
+                    binding.tvDate.animate()
+                        .alpha(1f)
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .translationY(0f)
+                        .setDuration(150)
+                        .setInterpolator(android.view.animation.DecelerateInterpolator())
+                        .start()
+                }
+                .start()
         } else {
             binding.tvDate.text = newText
         }
@@ -536,11 +637,13 @@ class MainActivity : AppCompatActivity() {
         val amountText = normalizeAmountInput(binding.etAmount.text.toString().trim())
 
         if (title.isEmpty()) {
+            binding.etTitle.animateValidationError()
             Snackbar.make(binding.root, R.string.msg_enter_description, Snackbar.LENGTH_SHORT).show()
             return
         }
         val amount = amountText.toDoubleOrNull()
         if (amount == null || amount <= 0) {
+            binding.etAmount.animateValidationError()
             Snackbar.make(binding.root, R.string.msg_enter_valid_amount, Snackbar.LENGTH_SHORT).show()
             return
         }
@@ -592,16 +695,20 @@ class MainActivity : AppCompatActivity() {
             .create()
 
         dialog.setOnShowListener {
+            dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).applyPressAnimation()
+            dialog.getButton(android.content.DialogInterface.BUTTON_NEUTRAL).applyPressAnimation()
             dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).setOnClickListener {
                 val title = dialogBinding.etEditTitle.text.toString().trim()
                 val amountText = normalizeAmountInput(dialogBinding.etEditAmount.text.toString().trim())
 
                 if (title.isEmpty()) {
+                    dialogBinding.etEditTitle.animateValidationError()
                     Snackbar.make(binding.root, R.string.msg_enter_description, Snackbar.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
                 val amount = amountText.toDoubleOrNull()
                 if (amount == null || amount <= 0) {
+                    dialogBinding.etEditAmount.animateValidationError()
                     Snackbar.make(binding.root, R.string.msg_enter_valid_amount, Snackbar.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
@@ -610,11 +717,13 @@ class MainActivity : AppCompatActivity() {
                 dbHelper.updateExpense(expense.id, title, amount, category)
                 refreshList()
                 Snackbar.make(binding.root, R.string.msg_expense_updated, Snackbar.LENGTH_SHORT).show()
-                dialog.dismiss()
+                dialogBinding.root.animateContentOut(1) { dialog.dismiss() }
             }
             dialog.getButton(android.content.DialogInterface.BUTTON_NEUTRAL).setOnClickListener {
-                dialog.dismiss()
-                deleteExpense(expense, showUndo = true)
+                dialogBinding.root.animateContentOut(-1) {
+                    dialog.dismiss()
+                    deleteExpense(expense, showUndo = true)
+                }
             }
         }
         dialog.show()
@@ -639,9 +748,24 @@ class MainActivity : AppCompatActivity() {
         if (shouldShow) {
             binding.emptyState.visibility = View.VISIBLE
             binding.emptyState.alpha = 0f
-            binding.emptyState.animate().alpha(1f).setDuration(200).start()
+            binding.emptyState.translationY = 12f
+            binding.emptyState.scaleX = 0.98f
+            binding.emptyState.scaleY = 0.98f
+            binding.emptyState.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(190)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
         } else {
-            binding.emptyState.animate().alpha(0f).setDuration(150)
+            binding.emptyState.animate()
+                .alpha(0f)
+                .translationY(-8f)
+                .scaleX(0.98f)
+                .scaleY(0.98f)
+                .setDuration(130)
                 .withEndAction { binding.emptyState.visibility = View.GONE }
                 .start()
         }
@@ -659,7 +783,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         totalAnimator = ValueAnimator.ofFloat(lastTotal.toFloat(), newTotal.toFloat()).apply {
-            duration = 350
+            duration = 260
             addUpdateListener {
                 val value = (it.animatedValue as Float).toDouble()
                 binding.tvTotal.text = getString(R.string.total_label, formatter.format(value))
@@ -714,10 +838,24 @@ class MainActivity : AppCompatActivity() {
      * system language. AppCompatDelegate persists the choice and recreates the activity (and
      * any others running) to apply it. */
     private fun toggleAppLanguage() {
+        if (isLanguageSwitching) return
         val currentTag = AppCompatDelegate.getApplicationLocales()[0]?.language
             ?: resources.configuration.locales[0].language
         val nextTag = if (currentTag == "fa") "en" else "fa"
-        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(nextTag))
+        languageTransitionDirection = if (nextTag == "fa") 1 else -1
+        isLanguageSwitching = true
+        binding.root.animate().cancel()
+        binding.root.animate()
+            .alpha(0.78f)
+            .scaleX(0.985f)
+            .scaleY(0.985f)
+            .translationX(10f * languageTransitionDirection)
+            .setDuration(110)
+            .setInterpolator(AccelerateInterpolator())
+            .withEndAction {
+                AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(nextTag))
+            }
+            .start()
     }
 
     // ---- Backup ----
@@ -728,14 +866,20 @@ class MainActivity : AppCompatActivity() {
             .setView(dialogBinding.root)
             .create()
 
+        dialogBinding.rowExport.applyPressAnimation(0.985f)
+        dialogBinding.rowImport.applyPressAnimation(0.985f)
         dialogBinding.rowExport.setOnClickListener {
-            dialog.dismiss()
-            val fileName = "expense_backup_${PersianDate.dateKey(jy, jm, jd)}.json"
-            exportBackupLauncher.launch(fileName)
+            dialogBinding.rowExport.animateContentOut(1) {
+                dialog.dismiss()
+                val fileName = "expense_backup_${PersianDate.dateKey(jy, jm, jd)}.json"
+                exportBackupLauncher.launch(fileName)
+            }
         }
         dialogBinding.rowImport.setOnClickListener {
-            dialog.dismiss()
-            importBackupLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
+            dialogBinding.rowImport.animateContentOut(1) {
+                dialog.dismiss()
+                importBackupLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
+            }
         }
         dialog.show()
     }
@@ -749,14 +893,28 @@ class MainActivity : AppCompatActivity() {
         Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
-    private fun updatePermissionStatusText(view: TextView) {
-        view.text = getString(
+    private fun updatePermissionStatusText(view: TextView, animate: Boolean = false) {
+        val newText = getString(
             if (hasSmsPermission() && hasNotificationPermission()) {
                 R.string.sms_permission_granted
             } else {
                 R.string.sms_permission_not_granted
             }
         )
+        if (animate && view.text.toString() != newText) {
+            view.animate().cancel()
+            view.alpha = 0.35f
+            view.translationX = 8f
+            view.text = newText
+            view.animate()
+                .alpha(1f)
+                .translationX(0f)
+                .setDuration(170)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
+        } else {
+            view.text = newText
+        }
     }
 
     private fun requestSmsAndNotificationPermissions() {
@@ -778,11 +936,21 @@ class MainActivity : AppCompatActivity() {
                 dbHelper.setCustomBankEnabled(bank.id, checked)
                 BalanceWidgetProvider.updateAll(this)
             }
+            rowBinding.btnDeleteBank.applyPressAnimation()
             rowBinding.btnDeleteBank.setOnClickListener {
-                dbHelper.deleteCustomBank(bank.id)
-                Snackbar.make(binding.root, R.string.msg_bank_removed, Snackbar.LENGTH_SHORT).show()
-                renderCustomBanksList(container)
-                BalanceWidgetProvider.updateAll(this)
+                rowBinding.btnDeleteBank.isEnabled = false
+                rowBinding.root.animate()
+                    .alpha(0f)
+                    .scaleX(0.96f)
+                    .translationX(10f)
+                    .setDuration(140)
+                    .withEndAction {
+                        dbHelper.deleteCustomBank(bank.id)
+                        Snackbar.make(binding.root, R.string.msg_bank_removed, Snackbar.LENGTH_SHORT).show()
+                        renderCustomBanksList(container)
+                        BalanceWidgetProvider.updateAll(this)
+                    }
+                    .start()
             }
             container.addView(rowBinding.root)
         }
@@ -794,12 +962,24 @@ class MainActivity : AppCompatActivity() {
 
         fun updatePreview() {
             val sample = dialogBinding.etBankSample.text.toString()
-            dialogBinding.tvBankSamplePreview.text = if (sample.isBlank()) {
+            val newText = if (sample.isBlank()) {
                 getString(R.string.preview_bank_sample_empty)
             } else {
                 val parsed = BankSmsParser.parseGeneric(sample)
                 val amountText = parsed.amount?.let { formatter.format(it) } ?: "?"
-                "${parsed.title} — $amountText Toman"
+                getString(R.string.preview_bank_amount_format, parsed.title, amountText)
+            }
+            if (dialogBinding.tvBankSamplePreview.text.toString() != newText) {
+                dialogBinding.tvBankSamplePreview.animate().cancel()
+                dialogBinding.tvBankSamplePreview.alpha = 0.45f
+                dialogBinding.tvBankSamplePreview.translationY = 5f
+                dialogBinding.tvBankSamplePreview.text = newText
+                dialogBinding.tvBankSamplePreview.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setDuration(150)
+                    .setInterpolator(android.view.animation.DecelerateInterpolator())
+                    .start()
             }
         }
 
@@ -816,11 +996,15 @@ class MainActivity : AppCompatActivity() {
             .create()
 
         dialog.setOnShowListener {
+            dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).applyPressAnimation()
             dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).setOnClickListener {
                 val label = dialogBinding.etBankLabel.text.toString().trim()
                 val sender = dialogBinding.etBankSender.text.toString().trim()
                 val sample = dialogBinding.etBankSample.text.toString().trim()
                 if (label.isEmpty() || sender.isEmpty() || sample.isEmpty()) {
+                    if (label.isEmpty()) dialogBinding.etBankLabel.animateValidationError()
+                    if (sender.isEmpty()) dialogBinding.etBankSender.animateValidationError()
+                    if (sample.isEmpty()) dialogBinding.etBankSample.animateValidationError()
                     Snackbar.make(binding.root, R.string.msg_bank_fields_required, Snackbar.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
@@ -841,6 +1025,8 @@ class MainActivity : AppCompatActivity() {
         smsPermissionStatusView = dialogBinding.tvSmsPermissionStatus
 
         renderCustomBanksList(dialogBinding.llCustomBanks)
+        dialogBinding.btnAddBank.applyPressAnimation()
+        dialogBinding.btnGrantSmsPermission.applyPressAnimation()
         dialogBinding.btnAddBank.setOnClickListener {
             showAddBankDialog { renderCustomBanksList(dialogBinding.llCustomBanks) }
         }
@@ -874,15 +1060,18 @@ class MainActivity : AppCompatActivity() {
         }
 
         val dialogBinding = DialogReviewSmsBinding.inflate(layoutInflater)
-        // Shown in the Jalali calendar to match every other date in the app — the SMS
-        // timestamp itself is a normal Gregorian epoch value, so this needs the same
-        // conversion used everywhere else rather than a raw Gregorian-formatted string.
-        val receivedCal = Calendar.getInstance().apply { timeInMillis = next.receivedAt }
-        val (ry, rm, rd) = PersianDate.gregorianToJalali(
-            receivedCal.get(Calendar.YEAR), receivedCal.get(Calendar.MONTH) + 1, receivedCal.get(Calendar.DAY_OF_MONTH)
-        )
+        val (_, rm, rd) = PersianDate.fromEpochMillis(next.receivedAt)
+        val locale = resources.configuration.locales[0]
         val timeText = DateFormat.format("HH:mm", next.receivedAt)
-        dialogBinding.tvReviewMeta.text = "${next.sender} · $rd ${PersianDate.monthName(rm)} · $timeText"
+        dialogBinding.tvReviewMeta.text = buildString {
+            append(next.sender)
+            append(" · ")
+            append(PersianDate.displayNumber(rd, locale))
+            append(' ')
+            append(PersianDate.monthName(rm, locale.language == "fa"))
+            append(" · ")
+            append(timeText)
+        }
         dialogBinding.tvReviewBody.text = next.body
         dialogBinding.etReviewTitle.setText(next.guessedTitle)
         dialogBinding.etReviewAmount.setText(next.guessedAmount?.let { formatter.format(it) } ?: "")
@@ -891,44 +1080,60 @@ class MainActivity : AppCompatActivity() {
         val dialog = MaterialAlertDialogBuilder(this)
             .setView(dialogBinding.root)
             .setCancelable(false)
-            // Positive button listener is overridden below via setOnShowListener so an
-            // invalid entry keeps the dialog open instead of silently discarding the item.
             .setPositiveButton(R.string.action_add, null)
-            .setNegativeButton(R.string.action_skip) { _, _ ->
-                dbHelper.deletePendingSms(next.id)
-                NotificationHelper.cancel(this, next.id)
-                BalanceWidgetProvider.updateAll(this)
-                showNextPendingSms()
-            }
+            .setNegativeButton(R.string.action_skip, null)
             .create()
 
+        fun dismissAndContinue(action: () -> Unit) {
+            dialogBinding.root.animate()
+                .alpha(0f)
+                .scaleX(0.97f)
+                .scaleY(0.97f)
+                .translationY(8f)
+                .setDuration(120)
+                .setInterpolator(AccelerateInterpolator())
+                .withEndAction {
+                    dialog.dismiss()
+                    action()
+                }
+                .start()
+        }
+
         dialog.setOnShowListener {
+            dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).applyPressAnimation()
+            dialog.getButton(android.content.DialogInterface.BUTTON_NEGATIVE).applyPressAnimation()
+            dialog.getButton(android.content.DialogInterface.BUTTON_NEGATIVE).setOnClickListener {
+                dismissAndContinue {
+                    dbHelper.deletePendingSms(next.id)
+                    NotificationHelper.cancel(this, next.id)
+                    BalanceWidgetProvider.updateAll(this)
+                    showNextPendingSms()
+                }
+            }
             dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).setOnClickListener {
                 val title = dialogBinding.etReviewTitle.text.toString().trim()
-                val amount = dialogBinding.etReviewAmount.text.toString().replace(",", "").toDoubleOrNull()
+                val amount = normalizeAmountInput(dialogBinding.etReviewAmount.text.toString()).toDoubleOrNull()
 
                 if (title.isEmpty()) {
                     dialogBinding.etReviewTitle.error = getString(R.string.msg_enter_description)
+                    dialogBinding.etReviewTitle.animateValidationError()
                     return@setOnClickListener
                 }
                 if (amount == null || amount <= 0) {
                     dialogBinding.etReviewAmount.error = getString(R.string.msg_enter_valid_amount)
+                    dialogBinding.etReviewAmount.animateValidationError()
                     return@setOnClickListener
                 }
 
                 val category = selectedCategory(dialogBinding.chipGroupReviewCategory)
-                val cal = Calendar.getInstance().apply { timeInMillis = next.receivedAt }
-                val (ey, em, ed) = PersianDate.gregorianToJalali(
-                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH)
-                )
+                val (ey, em, ed) = PersianDate.fromEpochMillis(next.receivedAt)
                 dbHelper.insertExpense(PersianDate.dateKey(ey, em, ed), title, amount, category)
                 if (ey == jy && em == jm && ed == jd) refreshList()
                 BalanceWidgetProvider.updateAll(this)
 
                 dbHelper.deletePendingSms(next.id)
                 NotificationHelper.cancel(this, next.id)
-                dialog.dismiss()
-                showNextPendingSms()
+                dismissAndContinue { showNextPendingSms() }
             }
         }
         dialog.show()

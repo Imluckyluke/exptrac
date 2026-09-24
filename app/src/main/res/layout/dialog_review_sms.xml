@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:layoutDirection="locale"
     android:paddingStart="24dp"
     android:paddingEnd="24dp"
     android:paddingTop="20dp"
@@ -16,6 +17,9 @@
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceLabelSmall"
         android:textColor="?attr/colorOnSurfaceVariant"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
+        android:textDirection="locale"
         tools:ignore="HardcodedText"
         tools:text="From 30007556 · Sep 12" />
 
@@ -28,6 +32,9 @@
         android:ellipsize="end"
         android:textAppearance="?attr/textAppearanceBodySmall"
         android:textColor="?attr/colorOnSurfaceVariant"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
+        android:textDirection="locale"
         tools:ignore="HardcodedText"
         tools:text="Purchase of 150,000 Rial at Digikala was successful." />
 
@@ -44,6 +51,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textDirection="locale"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
             android:inputType="text" />
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -59,6 +68,12 @@
             android:id="@+id/etReviewAmount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="end"
+            android:textDirection="ltr"
+            android:fontFamily="sans-serif"
+            android:fontFeatureSettings="tnum"
+            android:includeFontPadding="false"
+            android:digits="0123456789۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩"
             android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 

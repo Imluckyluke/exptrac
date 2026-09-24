@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:layoutDirection="locale"
     android:paddingTop="20dp"
     android:paddingBottom="12dp">
 
@@ -16,6 +17,8 @@
         android:textAppearance="?attr/textAppearanceTitleMedium"
         android:textColor="?attr/colorOnSurface"
         android:textStyle="bold"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
         android:text="@string/cd_backup" />
 
     <LinearLayout
@@ -55,16 +58,24 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="?attr/colorOnSurface"
-                android:text="@string/backup_export" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurface"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale"
+            android:text="@string/backup_export" />
+
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:text="@string/backup_export_subtitle" />
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale"
+            android:text="@string/backup_export_subtitle" />
+
         </LinearLayout>
     </LinearLayout>
 
@@ -105,16 +116,24 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBodyLarge"
-                android:textColor="?attr/colorOnSurface"
-                android:text="@string/backup_import" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurface"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale"
+            android:text="@string/backup_import" />
+
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:text="@string/backup_import_subtitle" />
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale"
+            android:text="@string/backup_import_subtitle" />
+
         </LinearLayout>
     </LinearLayout>
 

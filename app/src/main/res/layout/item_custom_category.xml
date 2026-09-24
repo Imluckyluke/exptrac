@@ -6,7 +6,8 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:layout_marginTop="4dp">
+    android:layoutDirection="locale"
+    android:layout_marginTop="@dimen/content_gap_small">
 
     <View
         android:id="@+id/catDot"
@@ -22,6 +23,8 @@
         android:layout_weight="1"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurface"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
         android:textDirection="locale"
         tools:ignore="HardcodedText"
         tools:text="Groceries" />

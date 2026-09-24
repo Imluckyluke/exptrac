@@ -30,6 +30,11 @@ class ExpenseAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
+        holder.binding.root.animate().cancel()
+        holder.binding.root.alpha = 1f
+        holder.binding.root.scaleX = 1f
+        holder.binding.root.scaleY = 1f
+        holder.binding.root.translationX = 0f
         holder.binding.tvItemTitle.text = item.title
         holder.binding.tvItemCategory.text = Category.labelOf(item.category)
         holder.binding.tvItemAmount.text = formatter.format(item.amount)

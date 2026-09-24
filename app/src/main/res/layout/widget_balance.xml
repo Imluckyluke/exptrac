@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:layoutDirection="locale"
     android:background="@drawable/widget_background"
     android:padding="16dp">
 
@@ -13,7 +14,10 @@
         android:layout_height="wrap_content"
         android:text="@string/app_name"
         android:textColor="@color/text_secondary"
-        android:textSize="12sp" />
+        android:textSize="12sp"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
+        android:textDirection="locale" />
 
     <LinearLayout
         android:id="@+id/balancesContainer"
@@ -34,7 +38,10 @@
         android:layout_marginTop="8dp"
         android:text="@string/widget_last_label"
         android:textColor="@color/text_secondary"
-        android:textSize="12sp" />
+        android:textSize="12sp"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
+        android:textDirection="locale" />
 
     <TextView
         android:id="@+id/tvLastTitle"
@@ -45,6 +52,9 @@
         android:textColor="@color/text_primary"
         android:textStyle="bold"
         android:textSize="14sp"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
+        android:textDirection="locale"
         tools:ignore="HardcodedText"
         tools:text="Purchase at Digikala" />
 
@@ -54,6 +64,9 @@
         android:layout_height="wrap_content"
         android:textColor="@color/text_secondary"
         android:textSize="13sp"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
+        android:textDirection="locale"
         tools:ignore="HardcodedText"
         tools:text="150,000 Toman" />
 

@@ -5,8 +5,9 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingTop="6dp"
-    android:paddingBottom="6dp">
+    android:layoutDirection="locale"
+    android:paddingTop="@dimen/content_gap_small"
+    android:paddingBottom="@dimen/content_gap_small">
 
     <View
         android:id="@+id/catDot"
@@ -22,6 +23,9 @@
         android:layout_weight="1"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurface"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
+        android:textDirection="locale"
         tools:ignore="HardcodedText"
         tools:text="Food" />
 
@@ -32,6 +36,11 @@
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textStyle="bold"
         android:textColor="?attr/colorOnSurface"
+        android:gravity="end"
+        android:textDirection="ltr"
+        android:fontFamily="sans-serif"
+        android:fontFeatureSettings="tnum"
+        android:includeFontPadding="false"
         tools:ignore="HardcodedText"
         tools:text="120,000" />
 
