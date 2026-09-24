@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="corner_card">20dp</dimen>
-    <dimen name="corner_card_header">26dp</dimen>
+    <dimen name="corner_card">24dp</dimen>
+    <dimen name="corner_card_header">32dp</dimen>
     <dimen name="elevation_header_resting">0dp</dimen>
-    <dimen name="elevation_header_scrolled">6dp</dimen>
+    <dimen name="elevation_header_scrolled">8dp</dimen>
     <dimen name="screen_h_padding">16dp</dimen>
     <dimen name="category_dot_size">10dp</dimen>
 </resources>

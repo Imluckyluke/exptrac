@@ -1,29 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple">#5B5FEF</color>
+    <!-- Rich, saturated Material 3 palette with layered tonal surfaces. -->
+    <color name="purple">#4F46E5</color>
     <color name="purple_dark">#3730A3</color>
-    <color name="teal">#FF8A5B</color>
-    <color name="background">#FBFAFF</color>
-    <color name="surface">#F1F1FC</color>
-    <color name="surface_light">#E7E6FA</color>
-    <color name="divider">#D9D7F0</color>
+    <color name="purple_light">#A5B4FC</color>
+    <color name="teal">#0EA5A5</color>
+    <color name="teal_dark">#0B7C7C</color>
+    <color name="rose">#E11D48</color>
+    <color name="amber">#D97706</color>
+
+    <color name="primary_container">#E0E7FF</color>
+    <color name="on_primary_container">#1E1B4B</color>
+    <color name="secondary_container">#CCFBF1</color>
+    <color name="on_secondary_container">#042F2E</color>
+    <color name="tertiary_container">#FFE4E6</color>
+    <color name="on_tertiary_container">#4C0519</color>
+
+    <color name="background">#F6F5FC</color>
+    <color name="surface">#FBFAFF</color>
+    <color name="surface_light">#F1F0FA</color>
+    <color name="surface_container_lowest">#FFFFFF</color>
+    <color name="surface_container_low">#F5F4FC</color>
+    <color name="surface_container">#EFEDF9</color>
+    <color name="surface_container_high">#E8E6F5</color>
+    <color name="surface_container_highest">#E1DFEF</color>
+    <color name="divider">#CFCCE4</color>
+    <color name="outline_variant">#E2DFF1</color>
     <color name="white">#FFFFFF</color>
-    <color name="text_dark">#1B1A2E</color>
-    <color name="text_primary">#1B1A2E</color>
-    <color name="text_secondary">#5B5975</color>
+    <color name="text_dark">#1A1730</color>
+    <color name="text_primary">#1A1730</color>
+    <color name="text_secondary">#5C5878</color>
     <color name="red">#D8483E</color>
     <color name="swipe_delete_bg">#FBDAD6</color>
-    <color name="today_badge_bg">#E3E2FC</color>
-    <color name="today_badge_text">#4340C4</color>
-    <color name="chart_1">#5B5FEF</color>
-    <color name="chart_2">#9B4FE0</color>
-    <color name="chart_3">#E0399F</color>
-    <color name="chart_4">#E8395C</color>
-    <color name="chart_5">#F2822E</color>
-    <color name="chart_6">#D4B92B</color>
-    <color name="chart_7">#8FC93A</color>
-    <color name="chart_8">#2FBF71</color>
-    <color name="chart_9">#22B8A0</color>
-    <color name="chart_10">#2E9BD6</color>
-    <color name="splash_background">#5B5FEF</color>
+    <color name="today_badge_bg">#E0E7FF</color>
+    <color name="today_badge_text">#3730A3</color>
+    <color name="chart_1">#4F46E5</color>
+    <color name="chart_2">#0EA5A5</color>
+    <color name="chart_3">#E11D48</color>
+    <color name="chart_4">#D97706</color>
+    <color name="chart_5">#7C3AED</color>
+    <color name="chart_6">#0891B2</color>
+    <color name="chart_7">#16A34A</color>
+    <color name="chart_8">#DB2777</color>
+    <color name="chart_9">#2563EB</color>
+    <color name="chart_10">#CA8A04</color>
+    <color name="splash_background">#4F46E5</color>
 </resources>

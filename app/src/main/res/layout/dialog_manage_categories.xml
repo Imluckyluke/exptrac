@@ -38,7 +38,7 @@
             android:orientation="horizontal">
 
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox" app:boxBackgroundColor="?attr/colorSurfaceContainerLowest"
                 app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.RoundedField"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

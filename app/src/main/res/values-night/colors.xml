@@ -1,28 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple">#B4B6FF</color>
-    <color name="purple_dark">#3730A3</color>
-    <color name="teal">#FFB08C</color>
-    <color name="background">#0E0D18</color>
-    <color name="surface">#18172A</color>
-    <color name="surface_light">#242238</color>
-    <color name="divider">#332F52</color>
+    <color name="purple">#A5B4FC</color>
+    <color name="purple_dark">#6D67F0</color>
+    <color name="purple_light">#C7D0FF</color>
+    <color name="teal">#2DD4BF</color>
+    <color name="teal_dark">#14B8A6</color>
+    <color name="rose">#FB7185</color>
+    <color name="amber">#FBBF24</color>
+
+    <color name="primary_container">#2E2A6B</color>
+    <color name="on_primary_container">#DDE1FF</color>
+    <color name="secondary_container">#0C3F3D</color>
+    <color name="on_secondary_container">#A7F3E9</color>
+    <color name="tertiary_container">#4B1524</color>
+    <color name="on_tertiary_container">#FFD9DF</color>
+
+    <color name="background">#08070F</color>
+    <color name="surface">#0E0D18</color>
+    <color name="surface_light">#18172A</color>
+    <color name="surface_container_lowest">#060509</color>
+    <color name="surface_container_low">#131222</color>
+    <color name="surface_container">#191829</color>
+    <color name="surface_container_high">#211F33</color>
+    <color name="surface_container_highest">#2B293F</color>
+    <color name="divider">#39364F</color>
+    <color name="outline_variant">#2B293F</color>
     <color name="white">#FFFFFF</color>
     <color name="text_dark">#FFFFFF</color>
-    <color name="text_primary">#ECEBFC</color>
-    <color name="text_secondary">#A9A6C9</color>
+    <color name="text_primary">#F0EEFF</color>
+    <color name="text_secondary">#ADA9CC</color>
     <color name="red">#F0A199</color>
     <color name="swipe_delete_bg">#4A2320</color>
-    <color name="today_badge_bg">#2E2A54</color>
-    <color name="today_badge_text">#C2C3FF</color>
-    <color name="chart_1">#B4B6FF</color>
-    <color name="chart_2">#C598ED</color>
-    <color name="chart_3">#ED8CC7</color>
-    <color name="chart_4">#F18CA0</color>
-    <color name="chart_5">#F7B685</color>
-    <color name="chart_6">#E6D684</color>
-    <color name="chart_7">#BEDF8C</color>
-    <color name="chart_8">#86D9AC</color>
-    <color name="chart_9">#7ED5C7</color>
-    <color name="chart_10">#85C5E7</color>
+    <color name="today_badge_bg">#2E2A6B</color>
+    <color name="today_badge_text">#C7D0FF</color>
+    <color name="chart_1">#8B85F5</color>
+    <color name="chart_2">#2DD4BF</color>
+    <color name="chart_3">#FB7185</color>
+    <color name="chart_4">#FBBF24</color>
+    <color name="chart_5">#A78BFA</color>
+    <color name="chart_6">#38BDF8</color>
+    <color name="chart_7">#4ADE80</color>
+    <color name="chart_8">#F472B6</color>
+    <color name="chart_9">#60A5FA</color>
+    <color name="chart_10">#FACC15</color>
 </resources>

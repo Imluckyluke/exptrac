@@ -33,6 +33,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.shape.ShapeAppearanceModel
 import com.google.android.material.snackbar.Snackbar
 import com.hadi.expensetracker.databinding.ActivityMainBinding
 import com.hadi.expensetracker.databinding.DialogAddBankBinding
@@ -237,6 +238,13 @@ class MainActivity : AppCompatActivity() {
             chip.isCheckable = true
             chip.tag = item.id
             chip.isChecked = item.id == selectedId
+            chip.chipIcon = ContextCompat.getDrawable(this, R.drawable.dot_category)?.mutate()
+            chip.chipIcon?.setTint(ContextCompat.getColor(this, item.colorRes))
+            chip.chipIconSize = resources.getDimension(R.dimen.category_dot_size)
+            chip.chipIconVisible = true
+            chip.shapeAppearanceModel = ShapeAppearanceModel.builder(this, null, 0)
+                .setAllCornerSizes(20.dp)
+                .build()
             chipGroup.addView(chip)
         }
         val addChip = Chip(this)

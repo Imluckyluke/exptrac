@@ -65,7 +65,7 @@
         android:id="@+id/headerCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="?attr/colorSurfaceVariant"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
         app:cardCornerRadius="@dimen/corner_card_header"
         app:cardElevation="@dimen/elevation_header_resting"
         app:strokeWidth="0dp">
@@ -214,7 +214,7 @@
     </FrameLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox" app:boxBackgroundColor="?attr/colorSurfaceContainerLowest"
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.RoundedField"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -230,7 +230,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox" app:boxBackgroundColor="?attr/colorSurfaceContainerLowest"
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.RoundedField"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -265,10 +265,14 @@
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.Pill"
         app:icon="@drawable/ic_add"
         app:iconGravity="textStart"
+        app:backgroundTint="?attr/colorPrimary"
+        app:elevation="4dp"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
+        android:layout_height="54dp"
         android:layout_marginTop="14dp"
         android:textAllCaps="false"
+        android:textSize="16sp"
+        android:textStyle="bold"
         android:text="@string/btn_add" />
 
 </LinearLayout>

@@ -23,7 +23,7 @@
             android:text="@string/dialog_edit_expense_title" />
 
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox" app:boxBackgroundColor="?attr/colorSurfaceContainerLowest"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.RoundedField"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -39,7 +39,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox" app:boxBackgroundColor="?attr/colorSurfaceContainerLowest"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.App.RoundedField"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
