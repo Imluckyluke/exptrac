@@ -135,14 +135,24 @@ class MainActivity : AppCompatActivity() {
         dbHelper = DbHelper(this)
         Category.refresh(this, dbHelper)
 
-        val cal = GregorianCalendar(Locale.US)
-        val (y, m, d) = PersianDate.gregorianToJalali(
-            cal.get(Calendar.YEAR),
-            cal.get(Calendar.MONTH) + 1,
-            cal.get(Calendar.DAY_OF_MONTH)
-        )
-        jy = y; jm = m; jd = d
-        todayY = y; todayM = m; todayD = d
+        if (savedInstanceState != null) {
+            // Survive rotation / language switch on the same viewed day.
+            jy = savedInstanceState.getInt("jy")
+            jm = savedInstanceState.getInt("jm")
+            jd = savedInstanceState.getInt("jd")
+            todayY = savedInstanceState.getInt("todayY", jy)
+            todayM = savedInstanceState.getInt("todayM", jm)
+            todayD = savedInstanceState.getInt("todayD", jd)
+        } else {
+            val cal = GregorianCalendar(Locale.US)
+            val (y, m, d) = PersianDate.gregorianToJalali(
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH) + 1,
+                cal.get(Calendar.DAY_OF_MONTH)
+            )
+            jy = y; jm = m; jd = d
+            todayY = y; todayM = m; todayD = d
+        }
 
         adapter = ExpenseAdapter(
             onEdit = { expense -> showEditExpenseDialog(expense) },
@@ -205,6 +215,16 @@ class MainActivity : AppCompatActivity() {
             val hasPending = dbHelper.getAllPendingSms().isNotEmpty()
             if (hasPending) runOnUiThread { startReviewFlow() }
         }.start()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("jy", jy)
+        outState.putInt("jm", jm)
+        outState.putInt("jd", jd)
+        outState.putInt("todayY", todayY)
+        outState.putInt("todayM", todayM)
+        outState.putInt("todayD", todayD)
     }
 
     // ---- Category chips ----
@@ -418,7 +438,8 @@ class MainActivity : AppCompatActivity() {
      * its row-level fade sneak in as a second, extra animation on top of this one). */
     private fun animateDayChange() {
         binding.dayContent.animate().cancel()
-        binding.dayContent.alpha = 0f
+        // Dip only to 0.35 instead of full 0 so cards don't visibly blink out.
+        binding.dayContent.alpha = 0.35f
 
         val defaultItemAnimator = binding.rvExpenses.itemAnimator
         binding.rvExpenses.itemAnimator = null
@@ -427,7 +448,7 @@ class MainActivity : AppCompatActivity() {
             binding.rvExpenses.itemAnimator = defaultItemAnimator
             binding.dayContent.animate()
                 .alpha(1f)
-                .setDuration(180)
+                .setDuration(140)
                 .start()
         }
     }
@@ -471,6 +492,7 @@ class MainActivity : AppCompatActivity() {
         val isToday = jy == todayY && jm == todayM && jd == todayD
 
         if (animate) {
+            binding.tvDate.animate().cancel()
             binding.tvDate.animate().alpha(0f).setDuration(100).withEndAction {
                 binding.tvDate.text = newText
                 binding.tvDate.alpha = 0f
@@ -482,6 +504,7 @@ class MainActivity : AppCompatActivity() {
 
         val badgeCurrentlyVisible = binding.todayBadge.visibility == View.VISIBLE
         if (isToday == badgeCurrentlyVisible) return
+        binding.todayBadge.animate().cancel()
 
         if (isToday) {
             binding.todayBadge.visibility = View.VISIBLE
@@ -603,6 +626,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateEmptyState(shouldShow: Boolean) {
         val isShown = binding.emptyState.visibility == View.VISIBLE
         if (shouldShow == isShown) return
+        binding.emptyState.animate().cancel()
 
         if (shouldShow) {
             binding.emptyState.visibility = View.VISIBLE

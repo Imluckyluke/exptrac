@@ -21,6 +21,8 @@ class StatsActivity : AppCompatActivity() {
     private var jy = 0
     private var jm = 0
     private var halfMode = false
+    private var hy = 0
+    private var hm = 0
     private var halfSecond = false
 
     private lateinit var tvMonthLabel: TextView
@@ -49,12 +51,22 @@ class StatsActivity : AppCompatActivity() {
         val (y, m, d) = PersianDate.gregorianToJalali(
             cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH)
         )
-        jy = y
-        jm = m
-        // Anchor half-month period to today: 5-20 or 20-5th(next).
-        if (d >= 20) { halfSecond = true } else if (d >= 5) { halfSecond = false } else {
-            if (jm == 1) { jy--; jm = 12 } else { jm-- }
-            halfSecond = true
+        if (savedInstanceState != null) {
+            jy = savedInstanceState.getInt("jy", y)
+            jm = savedInstanceState.getInt("jm", m)
+            halfMode = savedInstanceState.getBoolean("halfMode", false)
+            hy = savedInstanceState.getInt("hy", y)
+            hm = savedInstanceState.getInt("hm", m)
+            halfSecond = savedInstanceState.getBoolean("halfSecond", d >= 20)
+        } else {
+            jy = y
+            jm = m
+            // Anchor half-month period to today WITHOUT touching the monthly anchor.
+            if (d >= 20) { hy = y; hm = m; halfSecond = true }
+            else if (d >= 5) { hy = y; hm = m; halfSecond = false }
+            else {
+                val (py, pm) = prevMonthOf(y, m); hy = py; hm = pm; halfSecond = true
+            }
         }
 
         findViewById<View>(R.id.btnBack).setOnClickListener { finishWithTransition() }
@@ -99,29 +111,39 @@ class StatsActivity : AppCompatActivity() {
         repeat(kotlin.math.abs(delta)) {
             if (delta > 0) {
                 if (!halfSecond) { halfSecond = true } else {
-                    val (ny, nm) = nextMonthOf(jy, jm); jy = ny; jm = nm; halfSecond = false
+                    val (ny, nm) = nextMonthOf(hy, hm); hy = ny; hm = nm; halfSecond = false
                 }
             } else {
                 if (halfSecond) { halfSecond = false } else {
-                    val (py, pm) = prevMonthOf(jy, jm); jy = py; jm = pm; halfSecond = true
+                    val (py, pm) = prevMonthOf(hy, hm); hy = py; hm = pm; halfSecond = true
                 }
             }
         }
         loadCurrent()
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("jy", jy)
+        outState.putInt("jm", jm)
+        outState.putBoolean("halfMode", halfMode)
+        outState.putInt("hy", hy)
+        outState.putInt("hm", hm)
+        outState.putBoolean("halfSecond", halfSecond)
+    }
+
     private fun loadHalf() {
         val sKey: String
         val eKey: String
         if (!halfSecond) {
-            sKey = PersianDate.dateKey(jy, jm, 5)
-            eKey = PersianDate.dateKey(jy, jm, 20)
-            tvMonthLabel.text = "5 ${PersianDate.monthName(jm)} - 20 ${PersianDate.monthName(jm)} $jy"
+            sKey = PersianDate.dateKey(hy, hm, 5)
+            eKey = PersianDate.dateKey(hy, hm, 20)
+            tvMonthLabel.text = "5 ${PersianDate.monthName(hm)} - 20 ${PersianDate.monthName(hm)} $hy"
         } else {
-            val (ny, nm) = nextMonthOf(jy, jm)
-            sKey = PersianDate.dateKey(jy, jm, 20)
+            val (ny, nm) = nextMonthOf(hy, hm)
+            sKey = PersianDate.dateKey(hy, hm, 20)
             eKey = PersianDate.dateKey(ny, nm, 5)
-            tvMonthLabel.text = "20 ${PersianDate.monthName(jm)} - 5 ${PersianDate.monthName(nm)} $ny"
+            tvMonthLabel.text = "20 ${PersianDate.monthName(hm)} - 5 ${PersianDate.monthName(nm)} $ny"
         }
         val expenses = dbHelper.getExpensesForDateRange(sKey, eKey)
         val total = expenses.sumOf { it.amount }
