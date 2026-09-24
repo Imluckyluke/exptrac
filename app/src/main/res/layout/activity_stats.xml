@@ -101,8 +101,7 @@
                 app:cardBackgroundColor="?attr/colorSurfaceVariant"
                 app:cardCornerRadius="@dimen/corner_card_header"
                 app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                 app:strokeColor="?attr/colorOutline"
+                app:strokeWidth="0dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -111,7 +110,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="18dp"
-                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textStyle="bold"
                     android:textColor="?attr/colorPrimary"
                     tools:ignore="HardcodedText"
@@ -125,8 +124,7 @@
                 app:cardBackgroundColor="?attr/colorSurfaceVariant"
                 app:cardCornerRadius="@dimen/corner_card_header"
                 app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                 app:strokeColor="?attr/colorOutline">
+                app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -165,8 +163,7 @@
                 app:cardBackgroundColor="?attr/colorSurfaceVariant"
                 app:cardCornerRadius="@dimen/corner_card_header"
                 app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                 app:strokeColor="?attr/colorOutline">
+                app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
