@@ -152,7 +152,44 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
         return list
     }
 
-    /** Every expense, oldest first — used for full backup export. */
+    /** Every expense in [startKey]..[endKey] inclusive (keys are zero-padded so TEXT compare works). */
+    fun getExpensesForDateRange(startKey: String, endKey: String): List<Expense> {
+        val list = mutableListOf<Expense>()
+        val db = readableDatabase
+        val cursor = db.query(
+            "expenses", null, "date >= ? AND date <= ?", arrayOf(startKey, endKey),
+            null, null, "date ASC, id ASC"
+        )
+        cursor.use {
+            while (it.moveToNext()) list.add(expenseFromCursor(it))
+        }
+        return list
+    }
+
+    fun hasExpense(date: String, title: String, amount: Double): Boolean {
+        val db = readableDatabase
+        val cursor = db.query(
+            "expenses", arrayOf("amount"), "date = ? AND title = ?",
+            arrayOf(date, title),
+            null, null, null
+        )
+        cursor.use {
+            val idx = it.getColumnIndexOrThrow("amount")
+            while (it.moveToNext()) {
+                if (it.getDouble(idx) == amount) return true
+            }
+            return false
+        }
+    }
+
+    fun hasCustomBank(sender: String): Boolean {
+        val db = readableDatabase
+        val cursor = db.query(
+            "custom_banks", arrayOf("id"), "sender = ?", arrayOf(sender),
+            null, null, null, "1"
+        )
+        cursor.use { return it.moveToFirst() }
+    }
     fun getAllExpenses(): List<Expense> {
         val list = mutableListOf<Expense>()
         val db = readableDatabase
@@ -233,7 +270,22 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
         return list
     }
 
-    fun getPendingSmsById(id: Long): PendingSms? = getAllPendingSms().firstOrNull { it.id == id }
+    fun getPendingSmsById(id: Long): PendingSms? {
+        val db = readableDatabase
+        val cursor = db.query("pending_sms", null, "id = ?", arrayOf(id.toString()), null, null, null, "1")
+        cursor.use {
+            if (!it.moveToFirst()) return null
+            val amountIdx = it.getColumnIndexOrThrow("guessed_amount")
+            return PendingSms(
+                id = it.getLong(it.getColumnIndexOrThrow("id")),
+                sender = it.getString(it.getColumnIndexOrThrow("sender")),
+                receivedAt = it.getLong(it.getColumnIndexOrThrow("received_at")),
+                body = it.getString(it.getColumnIndexOrThrow("body")),
+                guessedTitle = it.getString(it.getColumnIndexOrThrow("guessed_title")),
+                guessedAmount = if (it.isNull(amountIdx)) null else it.getDouble(amountIdx)
+            )
+        }
+    }
 
     fun deletePendingSms(id: Long) {
         val db = writableDatabase

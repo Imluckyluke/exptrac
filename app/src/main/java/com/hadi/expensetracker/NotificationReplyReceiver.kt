@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.RemoteInput
 import java.util.Calendar
+import java.util.GregorianCalendar
+import java.util.Locale
 
 class NotificationReplyReceiver : BroadcastReceiver() {
 
@@ -30,7 +32,7 @@ class NotificationReplyReceiver : BroadcastReceiver() {
                             val title = replyText.ifBlank { pending.guessedTitle }
                             val amount = pending.guessedAmount
                             if (amount != null && amount > 0 && title.isNotBlank()) {
-                                val cal = Calendar.getInstance().apply { timeInMillis = pending.receivedAt }
+                                val cal = GregorianCalendar(Locale.US).apply { timeInMillis = pending.receivedAt }
                                 val (y, m, d) = PersianDate.gregorianToJalali(
                                     cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH)
                                 )

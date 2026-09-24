@@ -105,8 +105,10 @@ object BackupHelper {
                     Category.isValid(rawCategory) -> rawCategory
                     else -> Category.DEFAULT
                 }
-                dbHelper.insertExpense(date, title, amount, category)
-                expensesAdded++
+                if (!dbHelper.hasExpense(date, title, amount)) {
+                    dbHelper.insertExpense(date, title, amount, category)
+                    expensesAdded++
+                }
             }
         }
 
@@ -118,6 +120,7 @@ object BackupHelper {
                 val sender = obj.optString("sender")
                 val sample = obj.optString("sample")
                 if (label.isBlank() || sender.isBlank()) continue
+                if (dbHelper.hasCustomBank(sender)) continue
                 val id = dbHelper.addCustomBank(label, sender, sample)
                 if (!obj.optBoolean("enabled", true)) {
                     dbHelper.setCustomBankEnabled(id, false)

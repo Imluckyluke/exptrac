@@ -86,6 +86,9 @@
     <string name="stats_by_day_title">By day</string>
     <string name="stats_no_data">No expenses this month yet</string>
     <string name="stats_day_format">Day %1$d</string>
+    <string name="stats_mode_half">Half-month view</string>
+    <string name="stats_mode_month">Monthly view</string>
+    <string name="stats_total_period_label">Total this period: %1$s Toman</string>
 
     <string name="backup_export">Export backup</string>
     <string name="backup_export_subtitle">Save all your expenses to a file</string>

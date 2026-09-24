@@ -45,6 +45,7 @@ class PieChartView @JvmOverloads constructor(
     fun setData(newSlices: List<Slice>, animate: Boolean = true) {
         slices = newSlices.filter { it.amount > 0f }
         animator?.cancel()
+        contentDescription = if (slices.isEmpty()) "No data" else "${slices.size} categories"
         if (!animate) {
             progress = 1f
             invalidate()
@@ -60,6 +61,11 @@ class PieChartView @JvmOverloads constructor(
             }
             start()
         }
+    }
+
+    override fun onDetachedFromWindow() {
+        animator?.cancel()
+        super.onDetachedFromWindow()
     }
 
     override fun onDraw(canvas: Canvas) {

@@ -45,6 +45,8 @@ import com.hadi.expensetracker.databinding.ItemCustomBankBinding
 import com.hadi.expensetracker.databinding.ItemCustomCategoryBinding
 import java.text.DecimalFormat
 import java.util.Calendar
+import java.util.GregorianCalendar
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -133,7 +135,7 @@ class MainActivity : AppCompatActivity() {
         dbHelper = DbHelper(this)
         Category.refresh(this, dbHelper)
 
-        val cal = Calendar.getInstance()
+        val cal = GregorianCalendar(Locale.US)
         val (y, m, d) = PersianDate.gregorianToJalali(
             cal.get(Calendar.YEAR),
             cal.get(Calendar.MONTH) + 1,
@@ -156,6 +158,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         ItemTouchHelper(SwipeToDeleteCallback(binding.rvExpenses) { position ->
+            if (position < 0) return@SwipeToDeleteCallback
             val expense = adapter.currentList.getOrNull(position)
             if (expense != null) {
                 deleteExpense(expense, showUndo = true)
@@ -347,6 +350,21 @@ class MainActivity : AppCompatActivity() {
         attachAmountFormatter(binding.etAmount)
     }
 
+    /** Normalizes user-typed amounts: Persian/Arabic digits -> Latin, drops all
+     * thousands separators (ASCII comma, Persian thousands, spaces) so fa/en input parses. */
+    private fun normalizeAmountInput(raw: String): String {
+        val sb = StringBuilder(raw.length)
+        for (ch in raw) {
+            when (ch) {
+                in '۰'..'۹' -> sb.append(ch - '۰')
+                in '٠'..'٩' -> sb.append(ch - '٠')
+                ',', '٬', '،', ' ', ' ', '٫' -> {}
+                else -> sb.append(ch)
+            }
+        }
+        return sb.toString()
+    }
+
     private fun attachAmountFormatter(editText: android.widget.EditText) {
         var isFormatting = false
         editText.addTextChangedListener(object : TextWatcher {
@@ -357,7 +375,7 @@ class MainActivity : AppCompatActivity() {
                 if (isFormatting || s == null) return
                 isFormatting = true
 
-                val digitsOnly = s.toString().replace(",", "")
+                val digitsOnly = normalizeAmountInput(s.toString())
                 if (digitsOnly.isEmpty()) {
                     isFormatting = false
                     return
@@ -380,7 +398,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun changeDay(delta: Int) {
         val (gy, gm, gd) = PersianDate.jalaliToGregorian(jy, jm, jd)
-        val cal = Calendar.getInstance()
+        val cal = GregorianCalendar(Locale.US)
         cal.set(gy, gm - 1, gd)
         cal.add(Calendar.DAY_OF_MONTH, delta)
         val (ny, nm, nd) = PersianDate.gregorianToJalali(
@@ -435,7 +453,8 @@ class MainActivity : AppCompatActivity() {
                     if (isOverBlankSpace && !handled) {
                         val dx = e.x - startX
                         val dy = e.y - startY
-                        if (kotlin.math.abs(dx) > 60 && kotlin.math.abs(dx) > kotlin.math.abs(dy) * 1.5f) {
+                        val thresholdPx = 60f * rv.resources.displayMetrics.density
+                        if (kotlin.math.abs(dx) > thresholdPx && kotlin.math.abs(dx) > kotlin.math.abs(dy) * 1.5f) {
                             handled = true
                             changeDay(if (dx < 0) 1 else -1)
                             return true
@@ -485,7 +504,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun addExpense() {
         val title = binding.etTitle.text.toString().trim()
-        val amountText = binding.etAmount.text.toString().trim().replace(",", "")
+        val amountText = normalizeAmountInput(binding.etAmount.text.toString().trim())
 
         if (title.isEmpty()) {
             Snackbar.make(binding.root, R.string.msg_enter_description, Snackbar.LENGTH_SHORT).show()
@@ -544,7 +563,7 @@ class MainActivity : AppCompatActivity() {
         dialog.setOnShowListener {
             dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).setOnClickListener {
                 val title = dialogBinding.etEditTitle.text.toString().trim()
-                val amountText = dialogBinding.etEditAmount.text.toString().trim().replace(",", "")
+                val amountText = normalizeAmountInput(dialogBinding.etEditAmount.text.toString().trim())
 
                 if (title.isEmpty()) {
                     Snackbar.make(binding.root, R.string.msg_enter_description, Snackbar.LENGTH_SHORT).show()

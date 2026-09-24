@@ -34,7 +34,9 @@ class SwipeToDeleteCallback(
     ): Boolean = false
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-        onSwipeToDelete(viewHolder.bindingAdapterPosition)
+        val pos = viewHolder.bindingAdapterPosition
+        if (pos < 0) return
+        onSwipeToDelete(pos)
     }
 
     override fun onChildDraw(

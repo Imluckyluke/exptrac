@@ -10,6 +10,8 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.color.DynamicColors
 import java.text.DecimalFormat
 import java.util.Calendar
+import java.util.GregorianCalendar
+import java.util.Locale
 
 class StatsActivity : AppCompatActivity() {
 
@@ -18,6 +20,8 @@ class StatsActivity : AppCompatActivity() {
 
     private var jy = 0
     private var jm = 0
+    private var halfMode = false
+    private var halfSecond = false
 
     private lateinit var tvMonthLabel: TextView
     private lateinit var tvMonthTotal: TextView
@@ -41,18 +45,39 @@ class StatsActivity : AppCompatActivity() {
         llDayTotals = findViewById(R.id.llDayTotals)
         tvNoData = findViewById(R.id.tvNoData)
 
-        val cal = Calendar.getInstance()
-        val (y, m, _) = PersianDate.gregorianToJalali(
+        val cal = GregorianCalendar(Locale.US)
+        val (y, m, d) = PersianDate.gregorianToJalali(
             cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH)
         )
         jy = y
         jm = m
+        // Anchor half-month period to today: 5-20 or 20-5th(next).
+        if (d >= 20) { halfSecond = true } else if (d >= 5) { halfSecond = false } else {
+            if (jm == 1) { jy--; jm = 12 } else { jm-- }
+            halfSecond = true
+        }
 
         findViewById<View>(R.id.btnBack).setOnClickListener { finishWithTransition() }
-        findViewById<View>(R.id.btnPrevMonth).setOnClickListener { changeMonth(-1) }
-        findViewById<View>(R.id.btnNextMonth).setOnClickListener { changeMonth(1) }
+        findViewById<View>(R.id.btnPrevMonth).setOnClickListener { if (halfMode) changeHalf(-1) else changeMonth(-1) }
+        findViewById<View>(R.id.btnNextMonth).setOnClickListener { if (halfMode) changeHalf(1) else changeMonth(1) }
+        findViewById<View>(R.id.btnMode).setOnClickListener {
+            halfMode = !halfMode
+            updateModeButton()
+            loadCurrent()
+        }
+        updateModeButton()
 
-        loadMonth()
+        loadCurrent()
+    }
+
+    private fun updateModeButton() {
+        findViewById<android.widget.Button>(R.id.btnMode)?.let {
+            it.text = getString(if (halfMode) R.string.stats_mode_month else R.string.stats_mode_half)
+        }
+    }
+
+    private fun loadCurrent() {
+        if (halfMode) loadHalf() else loadMonth()
     }
 
     private fun changeMonth(delta: Int) {
@@ -64,7 +89,46 @@ class StatsActivity : AppCompatActivity() {
             jm = 12
             jy--
         }
-        loadMonth()
+        loadCurrent()
+    }
+
+    private fun nextMonthOf(y: Int, m: Int): Pair<Int, Int> = if (m == 12) Pair(y + 1, 1) else Pair(y, m + 1)
+    private fun prevMonthOf(y: Int, m: Int): Pair<Int, Int> = if (m == 1) Pair(y - 1, 12) else Pair(y, m - 1)
+
+    private fun changeHalf(delta: Int) {
+        repeat(kotlin.math.abs(delta)) {
+            if (delta > 0) {
+                if (!halfSecond) { halfSecond = true } else {
+                    val (ny, nm) = nextMonthOf(jy, jm); jy = ny; jm = nm; halfSecond = false
+                }
+            } else {
+                if (halfSecond) { halfSecond = false } else {
+                    val (py, pm) = prevMonthOf(jy, jm); jy = py; jm = pm; halfSecond = true
+                }
+            }
+        }
+        loadCurrent()
+    }
+
+    private fun loadHalf() {
+        val (sy, sm, sd): Triple<Int, Int, Int>
+        val (ey, em, ed): Triple<Int, Int, Int>
+        if (!halfSecond) {
+            sy = jy; sm = jm; sd = 5; ey = jy; em = jm; ed = 20
+            tvMonthLabel.text = "5 ${PersianDate.monthName(sm)} - 20 ${PersianDate.monthName(em)} $jy"
+        } else {
+            val (ny, nm) = nextMonthOf(jy, jm)
+            sy = jy; sm = jm; sd = 20; ey = ny; em = nm; ed = 5
+            tvMonthLabel.text = "20 ${PersianDate.monthName(sm)} - 5 ${PersianDate.monthName(em)} $ey"
+        }
+        val expenses = dbHelper.getExpensesForDateRange(
+            PersianDate.dateKey(sy, sm, sd), PersianDate.dateKey(ey, em, ed)
+        )
+        val total = expenses.sumOf { it.amount }
+        tvMonthTotal.text = getString(R.string.stats_total_period_label, formatter.format(total))
+        tvNoData.visibility = if (expenses.isEmpty()) View.VISIBLE else View.GONE
+        renderCategoryBars(expenses)
+        renderDayTotals(expenses)
     }
 
     private fun loadMonth() {

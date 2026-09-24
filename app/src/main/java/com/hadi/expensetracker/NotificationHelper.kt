@@ -26,6 +26,10 @@ object NotificationHelper {
     const val ACTION_SKIP = "com.hadi.expensetracker.ACTION_SKIP_TX"
     const val KEY_REPLY_TEXT = "key_reply_text"
 
+    /** Stable small IDs: Long ids overflow Int and (id*10) collides, so fold safely. */
+    private fun notifyId(pendingId: Long): Int = ((pendingId % 1_000_000_000L) + 1_000_000_000L).toInt() % 1_000_000_000
+    private fun requestCode(pendingId: Long, type: Int): Int = (notifyId(pendingId) * 10 + type) % Int.MAX_VALUE
+
     private val formatter = DecimalFormat("#,###")
 
     private fun ensureChannel(context: Context) {
@@ -67,7 +71,7 @@ object NotificationHelper {
             putExtra(EXTRA_PENDING_ID, pending.id)
         }
         val replyPendingIntent = PendingIntent.getBroadcast(
-            context, (pending.id * 10 + 1).toInt(), replyIntent,
+            context, requestCode(pending.id, 1), replyIntent,
             PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val remoteInput = RemoteInput.Builder(KEY_REPLY_TEXT)
@@ -82,7 +86,7 @@ object NotificationHelper {
             putExtra(EXTRA_PENDING_ID, pending.id)
         }
         val skipPendingIntent = PendingIntent.getBroadcast(
-            context, (pending.id * 10 + 2).toInt(), skipIntent,
+            context, requestCode(pending.id, 2), skipIntent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val skipAction = NotificationCompat.Action.Builder(
@@ -91,7 +95,7 @@ object NotificationHelper {
 
         val openIntent = Intent(context, MainActivity::class.java)
         val openPendingIntent = PendingIntent.getActivity(
-            context, (pending.id * 10 + 3).toInt(), openIntent,
+            context, requestCode(pending.id, 3), openIntent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
@@ -107,10 +111,10 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
-        NotificationManagerCompat.from(context).notify(pending.id.toInt(), notification)
+        NotificationManagerCompat.from(context).notify(notifyId(pending.id), notification)
     }
 
     fun cancel(context: Context, pendingId: Long) {
-        NotificationManagerCompat.from(context).cancel(pendingId.toInt())
+        NotificationManagerCompat.from(context).cancel(notifyId(pendingId))
     }
 }
