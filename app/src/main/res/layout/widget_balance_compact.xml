@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layoutDirection="locale"
+    android:background="@drawable/widget_background"
+    android:padding="6dp">
+
+    <TextView
+        android:id="@+id/tvCompactLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:text="@string/app_name"
+        android:textColor="@color/text_secondary"
+        android:textSize="9sp"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
+        android:textDirection="locale" />
+
+    <TextView
+        android:id="@+id/tvCompactAmount"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:text="@string/widget_balance_unknown"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
+        android:textDirection="ltr" />
+
+</LinearLayout>

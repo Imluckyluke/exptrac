@@ -61,6 +61,12 @@
     <string name="cd_add_category">افزودن دسته‌بندی</string>
     <string name="cd_delete_category">حذف دسته‌بندی</string>
     <string name="widget_description">موجودی بانک‌ها و آخرین تراکنش</string>
+    <string name="widget_total_balance">موجودی کل</string>
+    <string name="widget_no_banks">بانک فعالی نیست</string>
+    <string name="widget_preview_amount_blu">۱۲٬۴۵۰٬۰۰۰&#160;تومان</string>
+    <string name="widget_preview_amount_melli">۸٬۳۲۰٬۵۰۰&#160;تومان</string>
+    <string name="widget_preview_last_title">خرید از دیجی‌کالا</string>
+    <string name="widget_preview_last_amount">۱٬۲۵۰٬۰۰۰&#160;تومان</string>
     <string name="widget_last_label">آخرین تراکنش</string>
     <string name="widget_untitled_prompt">این واریز یا برداشت برای چه بود؟</string>
     <string name="widget_no_data">هنوز تراکنشی نیست</string>

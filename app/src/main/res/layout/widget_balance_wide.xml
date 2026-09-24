@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layoutDirection="locale"
+    android:background="@drawable/widget_background"
+    android:padding="4dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvWideLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="@string/widget_total_balance"
+            android:textColor="@color/text_secondary"
+            android:textSize="9sp"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale" />
+
+        <TextView
+            android:id="@+id/tvWideAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="@string/widget_balance_unknown"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="ltr" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="1dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="6dp"
+        android:background="@color/divider"
+        android:includeFontPadding="false" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/widget_last_label"
+            android:textColor="@color/text_secondary"
+            android:textSize="9sp"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale" />
+
+        <TextView
+            android:id="@+id/tvLastTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="@string/widget_no_data"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:textSize="10sp"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="locale" />
+
+        <TextView
+            android:id="@+id/tvLastAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/text_secondary"
+            android:textSize="9sp"
+            android:fontFamily="sans-serif"
+            android:includeFontPadding="false"
+            android:textDirection="ltr" />
+    </LinearLayout>
+
+</LinearLayout>

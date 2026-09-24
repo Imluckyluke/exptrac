@@ -61,6 +61,12 @@
     <string name="cd_add_category">Add category</string>
     <string name="cd_delete_category">Remove category</string>
     <string name="widget_description">Bank balances and your last transaction</string>
+    <string name="widget_total_balance">Total balance</string>
+    <string name="widget_no_banks">No enabled banks</string>
+    <string name="widget_preview_amount_blu">12,450,000&#160;Toman</string>
+    <string name="widget_preview_amount_melli">8,320,500&#160;Toman</string>
+    <string name="widget_preview_last_title">Shopping at Digikala</string>
+    <string name="widget_preview_last_amount">1,250,000&#160;Toman</string>
     <string name="widget_last_label">Last transaction</string>
     <string name="widget_untitled_prompt">What was this deposit/withdrawal for?</string>
     <string name="widget_no_data">No transactions yet</string>

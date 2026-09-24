@@ -1,40 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="2dp"
-    android:orientation="horizontal"
+    android:layout_marginTop="3dp"
+    android:orientation="vertical"
     android:layoutDirection="locale">
 
     <TextView
         android:id="@+id/tvBankLabel"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textColor="@color/text_primary"
-        android:textSize="12sp"
-        android:fontFamily="sans-serif"
-        android:includeFontPadding="false"
-        android:textDirection="locale"
         android:maxLines="1"
         android:ellipsize="end"
-        tools:ignore="HardcodedText"
-        tools:text="Blu Bank" />
+        android:textColor="@color/text_primary"
+        android:textSize="10sp"
+        android:fontFamily="sans-serif"
+        android:includeFontPadding="false"
+        android:textDirection="locale" />
 
     <TextView
         android:id="@+id/tvBankBalance"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:ellipsize="end"
         android:textColor="@color/text_primary"
         android:textStyle="bold"
         android:textSize="12sp"
         android:gravity="end"
         android:textDirection="ltr"
-        android:fontFamily="sans-serif"
         android:fontFeatureSettings="tnum"
-        android:includeFontPadding="false"
-        tools:ignore="HardcodedText"
-        tools:text="1,000,000 Toman" />
+        android:includeFontPadding="false" />
 
 </LinearLayout>
