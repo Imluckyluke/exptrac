@@ -241,9 +241,9 @@ class MainActivity : AppCompatActivity() {
             chip.chipIcon = ContextCompat.getDrawable(this, R.drawable.dot_category)?.mutate()
             chip.chipIcon?.setTint(ContextCompat.getColor(this, item.colorRes))
             chip.chipIconSize = resources.getDimension(R.dimen.category_dot_size)
-            chip.chipIconVisible = true
-            chip.shapeAppearanceModel = ShapeAppearanceModel.builder(this, null, 0)
-                .setAllCornerSizes(20.dp)
+            chip.isChipIconVisible = true
+            chip.shapeAppearanceModel = ShapeAppearanceModel.builder()
+                .setAllCornerSizes(20f * resources.displayMetrics.density)
                 .build()
             chipGroup.addView(chip)
         }
