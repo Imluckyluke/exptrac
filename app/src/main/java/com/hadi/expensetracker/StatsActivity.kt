@@ -111,19 +111,19 @@ class StatsActivity : AppCompatActivity() {
     }
 
     private fun loadHalf() {
-        val (sy, sm, sd): Triple<Int, Int, Int>
-        val (ey, em, ed): Triple<Int, Int, Int>
+        val sKey: String
+        val eKey: String
         if (!halfSecond) {
-            sy = jy; sm = jm; sd = 5; ey = jy; em = jm; ed = 20
-            tvMonthLabel.text = "5 ${PersianDate.monthName(sm)} - 20 ${PersianDate.monthName(em)} $jy"
+            sKey = PersianDate.dateKey(jy, jm, 5)
+            eKey = PersianDate.dateKey(jy, jm, 20)
+            tvMonthLabel.text = "5 ${PersianDate.monthName(jm)} - 20 ${PersianDate.monthName(jm)} $jy"
         } else {
             val (ny, nm) = nextMonthOf(jy, jm)
-            sy = jy; sm = jm; sd = 20; ey = ny; em = nm; ed = 5
-            tvMonthLabel.text = "20 ${PersianDate.monthName(sm)} - 5 ${PersianDate.monthName(em)} $ey"
+            sKey = PersianDate.dateKey(jy, jm, 20)
+            eKey = PersianDate.dateKey(ny, nm, 5)
+            tvMonthLabel.text = "20 ${PersianDate.monthName(jm)} - 5 ${PersianDate.monthName(nm)} $ny"
         }
-        val expenses = dbHelper.getExpensesForDateRange(
-            PersianDate.dateKey(sy, sm, sd), PersianDate.dateKey(ey, em, ed)
-        )
+        val expenses = dbHelper.getExpensesForDateRange(sKey, eKey)
         val total = expenses.sumOf { it.amount }
         tvMonthTotal.text = getString(R.string.stats_total_period_label, formatter.format(total))
         tvNoData.visibility = if (expenses.isEmpty()) View.VISIBLE else View.GONE
