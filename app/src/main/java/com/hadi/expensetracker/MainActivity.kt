@@ -431,15 +431,13 @@ class MainActivity : AppCompatActivity() {
         animateDayChange()
     }
 
-    /** Fades the new day's content in once, instead of fading the old content out and then
-     * the new content in — two separate fades back-to-back reads as two blinks, not one
-     * smooth transition. The RecyclerView's own item animator is held off until the new list
-     * has actually landed (submitList diffs asynchronously, so resetting it any earlier lets
-     * its row-level fade sneak in as a second, extra animation on top of this one). */
+    /** Swaps the day's list without a visible blink. The RecyclerView's own item
+     * animator is held off until the new list has landed (submitList diffs
+     * asynchronously), and the content only dips to 0.9 — a full fade-out reads
+     * as a flash on every day switch. */
     private fun animateDayChange() {
         binding.dayContent.animate().cancel()
-        // Dip only to 0.35 instead of full 0 so cards don't visibly blink out.
-        binding.dayContent.alpha = 0.35f
+        binding.dayContent.alpha = 0.9f
 
         val defaultItemAnimator = binding.rvExpenses.itemAnimator
         binding.rvExpenses.itemAnimator = null
@@ -448,7 +446,7 @@ class MainActivity : AppCompatActivity() {
             binding.rvExpenses.itemAnimator = defaultItemAnimator
             binding.dayContent.animate()
                 .alpha(1f)
-                .setDuration(140)
+                .setDuration(120)
                 .start()
         }
     }
@@ -549,7 +547,9 @@ class MainActivity : AppCompatActivity() {
         refreshList()
         binding.rvExpenses.post {
             adapter.currentList.lastIndex.takeIf { it >= 0 }?.let { lastIndex ->
-                binding.rvExpenses.smoothScrollToPosition(lastIndex)
+                // Instant, not smooth: a long fling from the top reads as a glitch.
+                (binding.rvExpenses.layoutManager as? LinearLayoutManager)
+                    ?.scrollToPositionWithOffset(lastIndex, 0)
             }
         }
     }
