@@ -16,15 +16,25 @@ import java.util.Locale
 
 class StatsActivity : AppCompatActivity() {
 
+    companion object {
+        const val EXTRA_YEAR = "stats_year"
+        const val EXTRA_MONTH = "stats_month"
+        const val EXTRA_DAY = "stats_day"
+    }
+
     private lateinit var dbHelper: DbHelper
     private val formatter = DecimalFormat("#,###")
 
     private var jy = 0
     private var jm = 0
+    private var monthlyYear = 0
+    private var monthlyMonth = 0
     private var halfMode = false
     private var hy = 0
     private var hm = 0
     private var halfSecond = false
+    private var anchorDay = 1
+    private var halfAnchorNeedsRefresh = false
     private var isTransitioning = false
 
     private lateinit var tvMonthLabel: TextView
@@ -33,6 +43,33 @@ class StatsActivity : AppCompatActivity() {
     private lateinit var llCategoryBars: LinearLayout
     private lateinit var llDayTotals: LinearLayout
     private lateinit var tvNoData: View
+
+    private fun isValidJalaliDate(year: Int, month: Int, day: Int): Boolean =
+        year > 0 && month in 1..12 && day in 1..PersianDate.daysInJalaliMonth(year, month)
+
+    private fun initializeHalfAnchor(year: Int, month: Int, day: Int) {
+        jy = year
+        jm = month
+        anchorDay = if (isValidJalaliDate(year, month, day)) day else 1
+        when {
+            anchorDay >= 20 -> {
+                hy = year
+                hm = month
+                halfSecond = true
+            }
+            anchorDay >= 5 -> {
+                hy = year
+                hm = month
+                halfSecond = false
+            }
+            else -> {
+                val (previousYear, previousMonth) = prevMonthOf(year, month)
+                hy = previousYear
+                hm = previousMonth
+                halfSecond = true
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         DynamicColors.applyToActivityIfAvailable(this)
@@ -50,26 +87,58 @@ class StatsActivity : AppCompatActivity() {
         tvNoData = findViewById(R.id.tvNoData)
 
         val cal = GregorianCalendar(Locale.US)
-        val (y, m, d) = PersianDate.gregorianToJalali(
+        val (todayYear, todayMonth, todayDay) = PersianDate.gregorianToJalali(
             cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH)
         )
+        val intentYear = intent.getIntExtra(EXTRA_YEAR, 0)
+        val intentMonth = intent.getIntExtra(EXTRA_MONTH, 0)
+        val intentDay = intent.getIntExtra(EXTRA_DAY, 0)
+        val hasIntentDate = isValidJalaliDate(intentYear, intentMonth, intentDay)
+        val initialYear = if (hasIntentDate) intentYear else todayYear
+        val initialMonth = if (hasIntentDate) intentMonth else todayMonth
+        val initialDay = if (hasIntentDate) intentDay else todayDay
+
         if (savedInstanceState != null) {
-            jy = savedInstanceState.getInt("jy", y)
-            jm = savedInstanceState.getInt("jm", m)
-            halfMode = savedInstanceState.getBoolean("halfMode", false)
-            hy = savedInstanceState.getInt("hy", y)
-            hm = savedInstanceState.getInt("hm", m)
-            halfSecond = savedInstanceState.getBoolean("halfSecond", d >= 20)
-        } else {
-            jy = y
-            jm = m
-            // Anchor half-month period to today WITHOUT touching the monthly anchor.
-            if (d >= 20) { hy = y; hm = m; halfSecond = true }
-            else if (d >= 5) { hy = y; hm = m; halfSecond = false }
-            else {
-                val (py, pm) = prevMonthOf(y, m); hy = py; hm = pm; halfSecond = true
+            val savedYear = savedInstanceState.getInt("jy", initialYear)
+            val savedMonth = savedInstanceState.getInt("jm", initialMonth)
+            if (isValidJalaliDate(savedYear, savedMonth, 1)) {
+                jy = savedYear
+                jm = savedMonth
+            } else {
+                jy = initialYear
+                jm = initialMonth
             }
+            halfMode = savedInstanceState.getBoolean("halfMode", false)
+            val savedAnchorDay = savedInstanceState.getInt("anchorDay", initialDay)
+            val hasSavedHalf = savedInstanceState.containsKey("hy") && savedInstanceState.containsKey("hm")
+            if (hasSavedHalf) {
+                val savedHalfYear = savedInstanceState.getInt("hy", jy)
+                val savedHalfMonth = savedInstanceState.getInt("hm", jm)
+                if (savedHalfYear > 0 && savedHalfMonth in 1..12) {
+                    hy = savedHalfYear
+                    hm = savedHalfMonth
+                    halfSecond = savedInstanceState.getBoolean("halfSecond", false)
+                    anchorDay = if (isValidJalaliDate(jy, jm, savedAnchorDay)) savedAnchorDay else initialDay
+                } else {
+                    initializeHalfAnchor(jy, jm, savedAnchorDay)
+                }
+            } else {
+                initializeHalfAnchor(jy, jm, savedAnchorDay)
+            }
+        } else {
+            initializeHalfAnchor(initialYear, initialMonth, initialDay)
         }
+
+        val savedMonthlyYear = savedInstanceState?.getInt("monthlyYear", 0) ?: 0
+        val savedMonthlyMonth = savedInstanceState?.getInt("monthlyMonth", 0) ?: 0
+        if (savedInstanceState != null && isValidJalaliDate(savedMonthlyYear, savedMonthlyMonth, 1)) {
+            monthlyYear = savedMonthlyYear
+            monthlyMonth = savedMonthlyMonth
+        } else {
+            monthlyYear = jy
+            monthlyMonth = jm
+        }
+        halfAnchorNeedsRefresh = savedInstanceState?.getBoolean("halfAnchorNeedsRefresh", false) ?: false
 
         val btnBack = findViewById<View>(R.id.btnBack)
         val btnPrevMonth = findViewById<View>(R.id.btnPrevMonth)
@@ -90,6 +159,13 @@ class StatsActivity : AppCompatActivity() {
         btnMode.setOnClickListener {
             if (isTransitioning) return@setOnClickListener
             halfMode = !halfMode
+            if (halfMode) {
+                if (halfAnchorNeedsRefresh) initializeHalfAnchor(jy, jm, anchorDay)
+                halfAnchorNeedsRefresh = false
+            } else {
+                jy = monthlyYear
+                jm = monthlyMonth
+            }
             updateModeButton(animate = true)
             loadCurrent(animate = true, direction = if (halfMode) 1 else -1)
         }
@@ -171,6 +247,10 @@ class StatsActivity : AppCompatActivity() {
             jm = 12
             jy--
         }
+        monthlyYear = jy
+        monthlyMonth = jm
+        halfAnchorNeedsRefresh = true
+        anchorDay = anchorDay.coerceIn(1, PersianDate.daysInJalaliMonth(jy, jm))
         loadCurrent(animate = true, direction = delta)
     }
 
@@ -189,6 +269,7 @@ class StatsActivity : AppCompatActivity() {
                 }
             }
         }
+        halfAnchorNeedsRefresh = false
         loadCurrent(animate = true, direction = delta)
     }
 
@@ -196,9 +277,13 @@ class StatsActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         outState.putInt("jy", jy)
         outState.putInt("jm", jm)
+        outState.putInt("monthlyYear", monthlyYear)
+        outState.putInt("monthlyMonth", monthlyMonth)
         outState.putBoolean("halfMode", halfMode)
         outState.putInt("hy", hy)
         outState.putInt("hm", hm)
+        outState.putInt("anchorDay", anchorDay)
+        outState.putBoolean("halfAnchorNeedsRefresh", halfAnchorNeedsRefresh)
         outState.putBoolean("halfSecond", halfSecond)
     }
 
@@ -238,14 +323,14 @@ class StatsActivity : AppCompatActivity() {
         if (!halfSecond) {
             sKey = PersianDate.dateKey(hy, hm, 5)
             eKey = PersianDate.dateKey(hy, hm, 20)
-            tvMonthLabel.text = "${displayNumber(5)} ${displayMonth(hm)} - ${displayNumber(20)} ${displayMonth(hm)} ${displayNumber(hy)}"
+            tvMonthLabel.text = "${displayNumber(5)} ${displayMonth(hm)} ${displayNumber(hy)} - ${displayNumber(20)} ${displayMonth(hm)} ${displayNumber(hy)}"
         } else {
             val (ny, nm) = nextMonthOf(hy, hm)
             sKey = PersianDate.dateKey(hy, hm, 20)
             eKey = PersianDate.dateKey(ny, nm, 5)
-            tvMonthLabel.text = "${displayNumber(20)} ${displayMonth(hm)} - ${displayNumber(5)} ${displayMonth(nm)} ${displayNumber(ny)}"
+            tvMonthLabel.text = "${displayNumber(20)} ${displayMonth(hm)} ${displayNumber(hy)} - ${displayNumber(5)} ${displayMonth(nm)} ${displayNumber(ny)}"
         }
-        val expenses = dbHelper.getExpensesForDateRange(sKey, eKey)
+        val expenses = dbHelper.getExpensesForDateRange(sKey, eKey, includeEnd = false)
         val total = expenses.sumOf { it.amount }
         tvMonthTotal.text = getString(R.string.stats_total_period_label, formatter.format(total))
         setNoData(expenses.isEmpty())
@@ -256,8 +341,10 @@ class StatsActivity : AppCompatActivity() {
     private fun loadMonth() {
         tvMonthLabel.text = "${displayMonth(jm)} ${displayNumber(jy)}"
 
-        val monthPrefix = PersianDate.monthPrefix(jy, jm)
-        val expenses = dbHelper.getExpensesForMonth(monthPrefix)
+        val (nextYear, nextMonth) = nextMonthOf(jy, jm)
+        val startKey = PersianDate.dateKey(jy, jm, 1)
+        val endKey = PersianDate.dateKey(nextYear, nextMonth, 1)
+        val expenses = dbHelper.getExpensesForDateRange(startKey, endKey, includeEnd = false)
 
         val total = expenses.sumOf { it.amount }
         tvMonthTotal.text = getString(R.string.stats_total_label, formatter.format(total))
@@ -312,9 +399,14 @@ class StatsActivity : AppCompatActivity() {
         val inflater = LayoutInflater.from(this)
 
         for ((date, amount) in totals) {
-            val day = date.substringAfterLast("-").toIntOrNull() ?: continue
+            val parts = date.split('-')
+            if (parts.size != 3) continue
+            val month = parts[1].toIntOrNull() ?: continue
+            val day = parts[2].toIntOrNull() ?: continue
+            if (month !in 1..12) continue
             val row = inflater.inflate(R.layout.item_day_total, llDayTotals, false)
-            row.findViewById<TextView>(R.id.tvDayLabel).text = getString(R.string.stats_day_format, day)
+            val dayLabel = "${displayNumber(day)} ${displayMonth(month)}"
+            row.findViewById<TextView>(R.id.tvDayLabel).text = getString(R.string.stats_day_format, dayLabel)
             row.findViewById<TextView>(R.id.tvDayAmount).text = formatter.format(amount)
             llDayTotals.addView(row)
         }

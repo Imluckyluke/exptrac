@@ -242,7 +242,11 @@ class MainActivity : AppCompatActivity() {
         binding.btnAdd.setOnClickListener { addExpense() }
         binding.btnSmsSettings.setOnClickListener { showSmsSettingsDialog() }
         binding.btnStats.setOnClickListener {
-            startActivity(Intent(this, StatsActivity::class.java))
+            startActivity(Intent(this, StatsActivity::class.java).apply {
+                putExtra(StatsActivity.EXTRA_YEAR, jy)
+                putExtra(StatsActivity.EXTRA_MONTH, jm)
+                putExtra(StatsActivity.EXTRA_DAY, jd)
+            })
             @Suppress("DEPRECATION")
             overridePendingTransition(R.anim.slide_enter_forward, R.anim.slide_exit_forward)
         }

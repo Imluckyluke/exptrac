@@ -193,14 +193,19 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
         return list
     }
 
-    /** Every expense in [startKey]..[endKey] inclusive (keys are zero-padded so TEXT compare works). */
-    fun getExpensesForDateRange(startKey: String, endKey: String): List<Expense> {
+    /** Every expense in [startKey]..[endKey], with an optional exclusive upper boundary. */
+    fun getExpensesForDateRange(
+        startKey: String,
+        endKey: String,
+        includeEnd: Boolean = true
+    ): List<Expense> {
         val list = mutableListOf<Expense>()
         val normalizedStart = PersianDate.normalizeDateKey(startKey) ?: startKey
         val normalizedEnd = PersianDate.normalizeDateKey(endKey) ?: endKey
+        val endOperator = if (includeEnd) "<=" else "<"
         val db = readableDatabase
         val cursor = db.query(
-            "expenses", null, "date >= ? AND date <= ?", arrayOf(normalizedStart, normalizedEnd),
+            "expenses", null, "date >= ? AND date $endOperator ?", arrayOf(normalizedStart, normalizedEnd),
             null, null, "date ASC, id ASC"
         )
         cursor.use {

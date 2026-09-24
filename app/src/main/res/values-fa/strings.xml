@@ -86,7 +86,7 @@
     <string name="stats_by_category_title">بر اساس دسته‌بندی</string>
     <string name="stats_by_day_title">بر اساس روز</string>
     <string name="stats_no_data">این ماه هنوز هزینه‌ای ثبت نشده</string>
-    <string name="stats_day_format">روز %1$d</string>
+    <string name="stats_day_format">روز %1$s</string>
     <string name="stats_mode_half">نمای نیم‌ماه</string>
     <string name="stats_mode_month">نمای ماهانه</string>
     <string name="stats_total_period_label">جمع این دوره:&#160;%1$s&#160;تومان</string>

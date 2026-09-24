@@ -86,7 +86,7 @@
     <string name="stats_by_category_title">By category</string>
     <string name="stats_by_day_title">By day</string>
     <string name="stats_no_data">No expenses this month yet</string>
-    <string name="stats_day_format">Day %1$d</string>
+    <string name="stats_day_format">Day %1$s</string>
     <string name="stats_mode_half">Half-month view</string>
     <string name="stats_mode_month">Monthly view</string>
     <string name="stats_total_period_label">Total this period:&#160;%1$s&#160;Toman</string>
