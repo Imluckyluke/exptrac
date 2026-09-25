@@ -290,6 +290,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun populateCategoryChips(chipGroup: ChipGroup, selectedId: String, animate: Boolean = false) {
         chipGroup.removeAllViews()
+        val density = resources.displayMetrics.density
+        val chipHeight = (40f * density).toInt()
+        chipGroup.setPadding(0, (2f * density).toInt(), 0, (4f * density).toInt())
+        fun chipLayoutParams() = ChipGroup.LayoutParams(
+            ChipGroup.LayoutParams.WRAP_CONTENT,
+            chipHeight
+        )
         for (item in Category.ALL) {
             val chip = Chip(this)
             chip.text = item.label
@@ -301,13 +308,14 @@ class MainActivity : AppCompatActivity() {
             chip.chipIconSize = resources.getDimension(R.dimen.category_dot_size)
             chip.isChipIconVisible = true
             chip.setEnsureMinTouchTargetSize(false)
-            chip.setChipStartPadding(10f * resources.displayMetrics.density)
-            chip.setChipEndPadding(10f * resources.displayMetrics.density)
+            chip.setChipStartPadding(10f * density)
+            chip.setChipEndPadding(10f * density)
+            chip.setChipMinHeight(chipHeight.toFloat())
             chip.applyPressAnimation(0.94f)
             chip.shapeAppearanceModel = ShapeAppearanceModel.builder()
                 .setAllCornerSizes(20f * resources.displayMetrics.density)
                 .build()
-            chipGroup.addView(chip)
+            chipGroup.addView(chip, chipLayoutParams())
         }
         val addChip = Chip(this)
         addChip.text = getString(R.string.action_add)
@@ -316,8 +324,9 @@ class MainActivity : AppCompatActivity() {
         addChip.chipIconTint = addChip.textColors
         addChip.isChipIconVisible = true
         addChip.setEnsureMinTouchTargetSize(false)
-        addChip.setChipStartPadding(10f * resources.displayMetrics.density)
-        addChip.setChipEndPadding(10f * resources.displayMetrics.density)
+        addChip.setChipStartPadding(10f * density)
+        addChip.setChipEndPadding(10f * density)
+        addChip.setChipMinHeight(chipHeight.toFloat())
         addChip.shapeAppearanceModel = ShapeAppearanceModel.builder()
             .setAllCornerSizes(20f * resources.displayMetrics.density)
             .build()
@@ -326,7 +335,7 @@ class MainActivity : AppCompatActivity() {
         addChip.setOnClickListener {
             showManageCategoriesDialog(chipGroup)
         }
-        chipGroup.addView(addChip)
+        chipGroup.addView(addChip, chipLayoutParams())
         if (animate) chipGroup.animateChildrenIn(16L)
     }
 
