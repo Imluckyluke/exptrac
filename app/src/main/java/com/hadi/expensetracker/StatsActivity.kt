@@ -29,7 +29,7 @@ class StatsActivity : AppCompatActivity() {
     private var jm = 0
     private var monthlyYear = 0
     private var monthlyMonth = 0
-    private var halfMode = false
+    private var halfMode = true
     private var hy = 0
     private var hm = 0
     private var halfSecond = false
@@ -108,7 +108,7 @@ class StatsActivity : AppCompatActivity() {
                 jy = initialYear
                 jm = initialMonth
             }
-            halfMode = savedInstanceState.getBoolean("halfMode", false)
+            halfMode = savedInstanceState.getBoolean("halfMode", true)
             val savedAnchorDay = savedInstanceState.getInt("anchorDay", initialDay)
             val hasSavedHalf = savedInstanceState.containsKey("hy") && savedInstanceState.containsKey("hm")
             if (hasSavedHalf) {
