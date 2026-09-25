@@ -176,7 +176,7 @@ class StatsActivity : AppCompatActivity() {
 
     private fun updateModeButton(animate: Boolean = false) {
         findViewById<android.widget.Button>(R.id.btnMode)?.let { button ->
-            button.text = getString(if (halfMode) R.string.stats_mode_month else R.string.stats_mode_half)
+            button.text = getString(if (halfMode) R.string.stats_mode_half else R.string.stats_mode_month)
             if (animate) {
                 button.animate().cancel()
                 button.rotationY = 12f
