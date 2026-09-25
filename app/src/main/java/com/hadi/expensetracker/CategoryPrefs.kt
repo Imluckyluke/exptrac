@@ -10,15 +10,20 @@ object CategoryPrefs {
     private const val PREFS_NAME = "category_prefs"
     private const val KEY_HIDDEN = "hidden_builtin_ids"
 
-    fun getHiddenBuiltIns(context: Context): Set<String> =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getStringSet(KEY_HIDDEN, emptySet())
-            ?: emptySet()
+    fun getHiddenBuiltIns(context: Context, dbHelper: DbHelper): Set<String> {
+        migrateLegacyHiddenBuiltIns(context, dbHelper)
+        return dbHelper.getHiddenCategoryIds()
+    }
 
-    fun hideBuiltIn(context: Context, id: String) {
+    fun hideBuiltIn(dbHelper: DbHelper, id: String) {
+        dbHelper.hideCategory(id)
+    }
+
+    private fun migrateLegacyHiddenBuiltIns(context: Context, dbHelper: DbHelper) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val updated = HashSet(getHiddenBuiltIns(context))
-        updated.add(id)
-        prefs.edit().putStringSet(KEY_HIDDEN, updated).apply()
+        val hidden = HashSet(prefs.getStringSet(KEY_HIDDEN, emptySet()).orEmpty())
+        if (hidden.isEmpty()) return
+        for (id in hidden) dbHelper.hideCategory(id)
+        prefs.edit().remove(KEY_HIDDEN).commit()
     }
 }

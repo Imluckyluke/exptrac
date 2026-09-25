@@ -5,7 +5,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null, 5) {
+class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null, 6) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
@@ -22,6 +22,7 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
         createSmsTables(db)
         createCustomBanksTable(db)
         createCustomCategoriesTable(db)
+        createHiddenCategoriesTable(db)
         createExpenseDateIndex(db)
     }
 
@@ -40,6 +41,9 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
         if (oldVersion < 5) {
             normalizeExpenseDates(db)
             createExpenseDateIndex(db)
+        }
+        if (oldVersion < 6) {
+            createHiddenCategoriesTable(db)
         }
     }
 
@@ -112,6 +116,16 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 label TEXT NOT NULL,
                 color_index INTEGER NOT NULL DEFAULT 0
+            )
+            """.trimIndent()
+        )
+    }
+
+    private fun createHiddenCategoriesTable(db: SQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS hidden_categories (
+                id TEXT PRIMARY KEY
             )
             """.trimIndent()
         )
@@ -417,5 +431,33 @@ class DbHelper(context: Context) : SQLiteOpenHelper(context, "expenses.db", null
     fun deleteCustomCategory(id: Long) {
         val db = writableDatabase
         db.delete("custom_categories", "id = ?", arrayOf(id.toString()))
+    }
+
+    fun hideCategory(id: String) {
+        val values = ContentValues().apply { put("id", id) }
+        writableDatabase.insertWithOnConflict(
+            "hidden_categories",
+            null,
+            values,
+            SQLiteDatabase.CONFLICT_IGNORE
+        )
+    }
+
+    fun getHiddenCategoryIds(): Set<String> {
+        val ids = linkedSetOf<String>()
+        val cursor = readableDatabase.query(
+            "hidden_categories",
+            arrayOf("id"),
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+        cursor.use {
+            val idIndex = it.getColumnIndexOrThrow("id")
+            while (it.moveToNext()) ids.add(it.getString(idIndex))
+        }
+        return ids
     }
 }

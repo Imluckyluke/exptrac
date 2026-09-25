@@ -44,7 +44,7 @@ object Category {
      * custom categories from the database. Call after opening the DB and again after
      * adding/removing/hiding one. */
     fun refresh(context: Context, dbHelper: DbHelper) {
-        val hidden = CategoryPrefs.getHiddenBuiltIns(context)
+        val hidden = CategoryPrefs.getHiddenBuiltIns(context, dbHelper)
         builtIn = BUILT_IN_DEFS
             .filter { it.id !in hidden }
             .map { Item(it.id, context.getString(it.labelRes), it.colorRes) }
@@ -75,7 +75,7 @@ object Category {
 
     /** Hides a built-in category (it can't be deleted since its label isn't stored text). */
     fun hideBuiltIn(context: Context, dbHelper: DbHelper, id: String) {
-        CategoryPrefs.hideBuiltIn(context, id)
+        CategoryPrefs.hideBuiltIn(dbHelper, id)
         refresh(context, dbHelper)
     }
 
