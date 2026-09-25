@@ -11,7 +11,6 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.text.format.DateFormat
-import android.view.Gravity
 import android.view.View
 import android.view.MotionEvent
 import android.view.animation.AccelerateInterpolator
@@ -291,7 +290,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun populateCategoryChips(chipGroup: ChipGroup, selectedId: String, animate: Boolean = false) {
         chipGroup.removeAllViews()
-        chipGroup.gravity = Gravity.CENTER_VERTICAL
         for (item in Category.ALL) {
             val chip = Chip(this)
             chip.text = item.label
